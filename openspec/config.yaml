@@ -1,0 +1,26 @@
+schema: spec-driven
+
+context: |
+  Stack: FastAPI 3.11+ + React 18+TS + PostgreSQL + Docker Compose.
+  Multi-tenant estricto por clinic_id (Ley 25.326); nunca acceso cruzado.
+  Fechas en UTC en DB; UI en America/Argentina/Buenos_Aires (RN-07).
+  CAE AFIP/ARCA obligatorio antes de confirmar cobro (RN-03).
+  idempotency_key obligatoria en pagos/facturacion (RN-06).
+  Presupuesto aceptado genera cuenta corriente, sin firma en MVP (RN-08).
+  Comisiones/liquidacion V2, solo metrica en V1 (RN-09).
+  Modo 1 agente secuencial segun CHANGES.md.
+
+rules:
+  proposal:
+    - Keep proposals under 500 words
+    - Always state what is out of scope
+  tasks:
+    - Break tasks into chunks of max 2 hours
+
+operations:
+  apply:
+    guidance:
+      - Keep test summaries concise
+  archive:
+    guidance:
+      - Summarize the archive outcome before finishing

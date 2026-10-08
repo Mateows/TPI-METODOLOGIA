@@ -1,0 +1,113 @@
+{
+  "version": 4,
+  "step": "ready",
+  "owner": "active-orchestrator",
+  "roadmap": {
+    "created_by": "roadmap-generator",
+    "source": "CHANGES.md",
+    "changes": [
+      "C-01",
+      "C-02",
+      "C-03",
+      "C-04",
+      "C-05",
+      "C-06",
+      "C-07",
+      "C-08",
+      "C-09",
+      "C-10"
+    ]
+  },
+  "kb": {
+    "created_by": "kb-creator",
+    "source": "ingest",
+    "discovery": {
+      "problem": "Gestión fragmentada de turnos, historias clínicas y cobros en consultorios odontológicos de Argentina y LATAM.",
+      "system_type": "saas_multi_tenant",
+      "domain": "odontology_management",
+      "scale": "public_multi_user",
+      "stack": "FastAPI + React + PostgreSQL",
+      "needs_infra": true
+    },
+    "files": [
+      "knowledge-base/01_vision_y_objetivos.md",
+      "knowledge-base/02_descripcion_general.md",
+      "knowledge-base/03_actores_y_roles.md",
+      "knowledge-base/04_modelo_de_datos.md",
+      "knowledge-base/05_reglas_de_negocio.md",
+      "knowledge-base/06_funcionalidades.md",
+      "knowledge-base/07_flujos_principales.md",
+      "knowledge-base/08_arquitectura_propuesta.md",
+      "knowledge-base/09_decisiones_y_supuestos.md",
+      "knowledge-base/10_preguntas_abiertas.md",
+      "knowledge-base/README.md"
+    ]
+  },
+  "discovery": {
+    "created_by": "discovery-research",
+    "sources": [
+      "https://www.simplesdental.com",
+      "https://www.dentalink.cl",
+      "https://alegra.com/odonto/",
+      "https://la.dentidesk.me",
+      "https://cliniccloud.es",
+      "https://www.henryscheinone.es",
+      "https://www.curvedental.com",
+      "https://www.opendental.com",
+      "https://www.carestreamdental.com",
+      "https://www.afip.gob.ar",
+      "https://www.argentina.gob.ar/aaip"
+    ],
+    "competitors": [
+      { "name": "Simples Dental", "notes_file": "discovery/discovery.md" },
+      { "name": "Dentalink", "notes_file": "discovery/discovery.md" },
+      { "name": "Alegra Odonto", "notes_file": "discovery/discovery.md" },
+      { "name": "Dentidesk", "notes_file": "discovery/discovery.md" },
+      { "name": "Clinic Cloud", "notes_file": "discovery/discovery.md" }
+    ],
+    "problema": "Gestión fragmentada de turnos, historias clínicas y cobros en consultorios odontológicos de Argentina y LATAM, generando ausentismo, riesgos legales y baja eficiencia administrativa.",
+    "usuarios": ["Odontólogo", "Recepcionista", "Administrador", "Paciente"],
+    "casos_de_uso": [
+      "Reserva de turnos online 24/7 sin fricción",
+      "Recordatorios automatizados por WhatsApp para reducir ausentismo",
+      "Registro clínico integrado con odontograma y presupuesto",
+      "Control de caja y facturación fiscal AFIP/ARCA",
+      "Liquidación de honorarios a profesionales"
+    ],
+    "funcionalidades_necesarias": [
+      "Agenda multi-profesional y multi-box",
+      "Reserva online vía web y WhatsApp",
+      "Historia clínica y odontograma básico/estándar",
+      "Recordatorios automáticos por WhatsApp",
+      "Caja diaria y facturación AFIP/ARCA"
+    ],
+    "funcionalidades_opcionales": [
+      "Bot de WhatsApp con IA para re-agenda",
+      "Presupuestos con firma digital",
+      "App móvil nativa"
+    ],
+    "reglas_de_negocio": [
+      "Prevención de solapamiento de turnos por profesional/box",
+      "Cumplimiento de Ley 25.326 de protección de datos de salud",
+      "Trazabilidad de cobros y caja"
+    ],
+    "integraciones": [
+      "WhatsApp Business API",
+      "Mercado Pago",
+      "AFIP/ARCA (Facturación electrónica)",
+      "Google Calendar"
+    ],
+    "restricciones": [
+      "Adaptación obligatoria al marco fiscal e impositivo argentino",
+      "Presupuesto y costo accesible en pesos (ARS) para consultorios independientes"
+    ],
+    "riesgos": [
+      "Resistencia al cambio del personal administrativo acostumbrado a planillas de papel o WhatsApp manual",
+      "Estabilidad y latencia de las integraciones con AFIP y WhatsApp API"
+    ],
+    "preguntas_abiertas": [
+      "¿Se incluirá soporte multi-sucursal desde la v1 o se enfocará en consultorios unipersonales/clínicas medianas?",
+      "¿Cuál será la pasarela de pagos primaria para señas de turnos online?"
+    ]
+  }
+}
