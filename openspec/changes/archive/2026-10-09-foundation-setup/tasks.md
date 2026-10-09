@@ -24,4 +24,9 @@
 ## 5. Harness de tests e integración final
 
 - [x] 5.1 Add `tests/conftest.py` fixtures (async client, session dependency override to isolated test DB, per-test rollback, session-scoped Alembic upgrade) and verify a marker test writes only to the test database
-- [ ] 5.2 Run full acceptance (`docker compose up -d db`, `alembic upgrade head`, `pytest`) and verify green suite plus documented commands in this task reproduce it as written
+- [x] 5.2 Run full acceptance (`docker compose up -d db`, `alembic upgrade head`, `pytest`) and verify green suite plus documented commands in this task reproduce it as written
+
+> Cierre aceptado por el usuario (Opción 2, 2026-10-09): suite 23/23 verde + ciclo Alembic
+> upgrade/downgrade/upgrade verificado + venv limpio OK como evidencia suficiente para C-01.
+> El paso contra Postgres real vía `docker compose up -d db` (sin Docker CLI en este entorno)
+> queda como verificación del operador con los comandos documentados en `docker-compose.yml`.

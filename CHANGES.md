@@ -66,7 +66,7 @@ C-01 (Foundation Setup)
 ## FASE 1 — Fundación y Núcleo de Autenticación
 
 ### [C-01] `foundation-setup`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (2026-10-09, cierre Opción 2)
 - **Scope**:
   - Estructuración del proyecto FastAPI y configuración de Docker Compose (PostgreSQL).
   - Configuración de SQLAlchemy, Alembic para migraciones y Pydantic Settings (`.env`).
