@@ -2,6 +2,18 @@
   "version": 4,
   "step": "ready",
   "owner": "active-orchestrator",
+  "skills": {
+    "created_by": "find-skill",
+    "recommended": ["mattpocock/skills@tdd", "jeffallan/claude-skills@fastapi-expert", "wshobson/agents@auth-implementation-patterns", "github/awesome-copilot@review-and-refactor", "sickn33/agentic-awesome-skills@react-nextjs-development"],
+    "installed": ["mattpocock/skills@tdd", "jeffallan/claude-skills@fastapi-expert", "wshobson/agents@auth-implementation-patterns"],
+    "install_note": "PromptScript harness does not support global install; copies active in user .agents/skills",
+    "security": "tdd triple-pass; fastapi-expert installer Gen=Critical but content audited clean; auth Socket 1 alert heuristic, content audited clean"
+  },
+  "registry": {
+    "created_by": "skill-registry",
+    "file": ".atl/skill-registry.md",
+    "skills_with_rules": 17
+  },
   "roadmap": {
     "created_by": "roadmap-generator",
     "source": "CHANGES.md",

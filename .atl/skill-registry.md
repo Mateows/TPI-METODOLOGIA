@@ -20,6 +20,9 @@
 | Crear y modificar skills | skill-creator | C:\Users\Mateows\.config\opencode\skills\skill-creator\SKILL.md |
 | Crear o actualizar skill registry | skill-registry | C:\Users\Mateows\.config\opencode\skills\skill-registry\SKILL.md |
 | Investigar competidores por URL | web-scraper | C:\Users\Mateows\.config\opencode\skills\web-scraper\SKILL.md |
+| Build features / fix bugs test-first, red-green-refactor | tdd | C:\Users\Mateows\.agents\skills\tdd\SKILL.md |
+| FastAPI, Pydantic, async Python, SQLAlchemy async, JWT, OpenAPI | fastapi-expert | C:\Users\Mateows\.agents\skills\fastapi-expert\SKILL.md |
+| Implementar auth/RBAC, securizar APIs, debug seguridad | auth-implementation-patterns | C:\Users\Mateows\.agents\skills\auth-implementation-patterns\SKILL.md |
 
 > **Nota naming:** el nombre canónico es `find-skills` (plural, según frontmatter `name: find-skills` del SKILL.md); el directorio en disco es `find-skill/` (singular). La fila usa el nombre canónico; el path conserva el directorio real.
 >
@@ -109,6 +112,33 @@
 - Fetches via WebFetch with schema-prompt; on empty/403/paywall/CAPTCHA reports the limitation and continues — no evasion, no mass crawling, single pages only
 - Read-only, no approval gate per URL; processes lists one-by-one, reports resolved vs failed counts at the end
 - Invoked standalone ("investigar competidor X") or as sub-skill of `discovery-research` before its Q&A
+
+### tdd
+- Red → green en vertical slices: un seam, un test, una implementación mínima por ciclo; nunca horizontal slicing (todos los tests primero)
+- Testear solo en seams pre-acordados (boundary pública); confirmar seams con el usuario antes de escribir tests
+- Tests verifican comportamiento vía interfaz pública (sobreviven refactors); un assertion lógica por test, valores esperados de fuente independiente (literal/spec), nunca tautológicos
+- Mock solo en boundaries del sistema (APIs externas, DB/test-DB, tiempo/random, FS); nunca mockear clases/colaboradores propios ni métodos privados
+- Refactor no es parte del loop (va en review); ver tests.md (buenos/malos ejemplos) + mocking.md (DI + SDK-style interfaces)
+
+### fastapi-expert
+- Async en todo I/O: `async def` endpoints + `AsyncSession`; nunca sync DB ni mezclar sync/async
+- Pydantic V2 siempre (`field_validator`, `model_validator`, `model_config`, `EmailStr`, `from_attributes=True`); prohibido sintaxis V1 (`@validator`, `class Config`)
+- DI con patrón `Annotated`: `DbDep = Annotated[AsyncSession, Depends(get_db)]`, `CurrentUser = Annotated[str, Depends(get_current_user)]`
+- JWT: `OAuth2PasswordBearer` + `create_access_token(sub, 30min)` + `get_current_user` con 401 ante token inválido; nunca plaintext passwords ni datos sensibles en responses
+- Schemas → router (`APIRouter(prefix, tags)`, status codes correctos) → crud (`select().where()`, commit/refresh); test async con pytest+httpx y verificar `/docs`
+- Refs en `references/`: pydantic-v2, async-sqlalchemy, endpoints-routing, authentication, testing-async, migration-from-django
+
+### auth-implementation-patterns
+- AuthN (quién sos) vs AuthZ (qué podés hacer): JWT stateless (access 15-30min + refresh 7d con rotación) u OAuth2/SSO; validar siempre server-side
+- RBAC + ownership de recurso en cada endpoint; nunca solo checks client-side
+- Passwords solo con bcrypt/argon2; JWT en httpOnly+secure+sameSite cookies (nunca localStorage); HTTPS + CSRF en sesiones + rotación de secretos
+- Rate-limit en endpoints de auth (anti brute-force); validar input (email/password strength); reset con tokens seguros con expiración
+- NOTA: `references/details.md` está escrito en Express/TS (jsonwebtoken, middleware `authenticate`) — los patrones transfieren a FastAPI/OAuth2PasswordBearer tal cual
+
+## Notas de seguridad (verificadas por orquestador, sin re-auditoría)
+- `tdd`: triple-pass limpio.
+- `fastapi-expert`: installer Gen=Critical, contenido auditado limpio.
+- `auth-implementation-patterns`: Socket 1 alerta heurística, contenido auditado limpio.
 
 ## Project Conventions
 
