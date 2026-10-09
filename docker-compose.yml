@@ -1,0 +1,32 @@
+# TPI Metodologia — local infrastructure (C-01 foundation-setup).
+# Single `db` service (PostgreSQL 16): dev database (POSTGRES_DB) + a separate
+# test database (POSTGRES_TEST_DB) on the SAME service — no second container.
+#
+#   docker compose up -d db          # start (waits healthy via healthcheck)
+#   DATABASE_URL=postgresql+asyncpg://tpi:tpi@localhost:5432/tpi_dev
+#   TEST_DATABASE_URL=postgresql+asyncpg://tpi:tpi@localhost:5432/tpi_test
+
+services:
+  db:
+    image: postgres:16
+    container_name: tpi-metodologia-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tpi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tpi}
+      POSTGRES_DB: ${POSTGRES_DB:-tpi_dev}
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB:-tpi_test}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tpi} -d ${POSTGRES_DB:-tpi_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  pgdata:
