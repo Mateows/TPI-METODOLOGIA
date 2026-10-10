@@ -36,7 +36,7 @@ La documentación canónica del proyecto se encuentra en la carpeta `knowledge-b
 | **Frontend** | `openspec-apply-change`, `openspec-explore` | Desarrollo de componentes React y portal de turnos |
 | **Orquestación (OPSX)** | `kb-creator`, `roadmap-generator`, `skill-registry`, `agents-md-generator`, `openspec-*` | Coordinación del ciclo de vida OpenSpec |
 
-> **Nota:** Los compact rules de cada skill los resuelve el orquestador desde `.atl/skill-registry.md` (generado por `skill-registry`; no versionado).
+> **Nota:** Los compact rules de cada skill los resuelve el orquestador desde `.atl/skill-registry.md` (generado por `skill-registry`; versionado SÍ por D-5).
 
 ---
 

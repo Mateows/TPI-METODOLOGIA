@@ -63,6 +63,16 @@ C-01 (Foundation Setup)
 
 ---
 
+## Riesgos
+
+- **Inestabilidad/latencia de AFIP-ARCA**: mitigación con diseño modular del conector + reintentos con idempotencia (RN-06).
+- **Latencia de WhatsApp Business API**: mitigación con recordatorios con reintentos y fallback a SMS/email.
+- **Resistencia del personal al papel/WhatsApp manual**: mitigación con UX de carga en <15min + onboarding asistido.
+- **Costo en USD de competidores vs. ARS local**: mitigación con pricing local en pesos acorde al mercado.
+- **Governance CRÍTICO en auth (C-02) y facturación (C-08)**: mitigación con checkpoints obligatorios con el usuario.
+
+---
+
 ## FASE 1 — Fundación y Núcleo de Autenticación
 
 ### [C-01] `foundation-setup`
