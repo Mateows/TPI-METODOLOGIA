@@ -30,3 +30,9 @@
 > upgrade/downgrade/upgrade verificado + venv limpio OK como evidencia suficiente para C-01.
 > El paso contra Postgres real vía `docker compose up -d db` (sin Docker CLI en este entorno)
 > queda como verificación del operador con los comandos documentados en `docker-compose.yml`.
+>
+> Apéndice operador (2026-10-11, Docker Desktop daemon v29.8.2): `docker compose up -d db`
+> → `pg_isready` OK en tpi_dev; `alembic upgrade head` → `Running upgrade -> 0001_init`
+> (EXIT 0) contra `postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev`;
+> `pytest -q` con ambas URLs en 5433 → **23 passed**. Opción 2 cerrada también contra
+> Postgres 16 real; servicio `db` dejado levantado (`docker compose stop db` para bajarlo).
