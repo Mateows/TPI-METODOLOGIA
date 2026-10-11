@@ -83,3 +83,9 @@
 - **Mercado Pago:** solo DentalSoft (caja) y DriCloud (lista de pasarelas).
 - **WhatsApp:** comprobado en AgendaPro, Nubimed y DentalSoft; afirmado en Medesk (blog MX); no evidenciado en DriCloud ni OdontoSoft.
 - **Descartado con registro:** PlanetDDS/Denticon (USA enterprise, sin AR: sin AFIP/OS/WhatsApp/ARS/español). Eaglesoft/Patterson y Doctolib: sin evidencia (error 429, no se afirma nada).
+
+## Fe de erratas — verificación personal del usuario (2026-10-11, Etapa 2.3)
+
+Este archivo es un snapshot del research tal cual se encontró el 2026-10-09 y no se reescribe. Correcciones posteriores (rigen en `docs/discovery/informe-discovery.md`):
+- **AgendaPro:** ARS confirmado en agendapro.com/ar/ (Individual 13.900 / Básico 33.900 / Premium 44.900 / Pro 313.900 mensual; anual 10 meses).
+- **DentalSoft:** los ARS 30.000/60.000 quedan SIN efecto — el sitio solo ofrece demo gratis, sin tarifario público; rige flag de homonimia (DentalSoftWeb colombiana).
