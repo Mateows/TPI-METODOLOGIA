@@ -93,6 +93,7 @@ async def test_health_against_unreachable_url_is_unhealthy(monkeypatch, tmp_path
 async def test_health_never_logs_request_bodies(env_ok, caplog):
     """Patient-like content in requests must never land in logs (Ley 25.326)."""
     main = _fresh_main()
+    # DNI sintético de prueba (dato ficticio, no es paciente real)
     marker = "PACIENTE-SENSIBLE-DNI-30999111"
     with caplog.at_level(logging.INFO, logger="uvicorn.error"):
         async with _client(main.app) as client:

@@ -23,6 +23,9 @@ Prerrequisito honesto: **Docker Desktop** (para PostgreSQL) + **Python 3.12**.
 
 ```bash
 docker compose up -d db
+cd backend
+set DATABASE_URL=postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev
+set TEST_DATABASE_URL=postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test
 alembic upgrade head
 pytest  # 23 tests
 ```

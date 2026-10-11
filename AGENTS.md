@@ -13,18 +13,9 @@
 
 ## Base de Conocimiento
 
-La documentación canónica del proyecto se encuentra en la carpeta `knowledge-base/`:
-
-- [01. Visión y Objetivos](knowledge-base/01_vision_y_objetivos.md)
-- [02. Descripción General](knowledge-base/02_descripcion_general.md)
-- [03. Actores y Roles](knowledge-base/03_actores_y_roles.md)
-- [04. Modelo de Datos](knowledge-base/04_modelo_de_datos.md)
-- [05. Reglas de Negocio](knowledge-base/05_reglas_de_negocio.md)
-- [06. Funcionalidades](knowledge-base/06_funcionalidades.md)
-- [07. Flujos Principales](knowledge-base/07_flujos_principales.md)
-- [08. Arquitectura Propuesta](knowledge-base/08_arquitectura_propuesta.md)
-- [09. Decisiones y Supuestos](knowledge-base/09_decisiones_y_supuestos.md)
-- [10. Preguntas Abiertas](knowledge-base/10_preguntas_abiertas.md)
+La documentación canónica del proyecto vive en `knowledge-base/` y su índice es
+[`knowledge-base/README.md`](knowledge-base/README.md): describe cada archivo 01–10
+y trae la guía de ruteo (qué leer según la tarea: proponer, turnos, auth, caja, dudas de diseño).
 
 ---
 

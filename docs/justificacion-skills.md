@@ -2,6 +2,8 @@
 
 Decisión 1-línea-por-skill (Etapa 5, `find-skill` solo recomienda — las instalaciones del 2026-10-10 se hicieron con autorización explícita del equipo).
 
+Alcance: las 5 evaluadas son el 100% de las recomendaciones de `find-skill`; las 12 restantes del registry son inventario preexistente, no recomendaciones.
+
 Verificación de rutas del registro (`.atl/skill-registry.md`, 2026-10-10): 17/17 `SKILL.md` existen. Los patrones `...\Mateows.config\...`, `...\Mateows.agents\...` (sin barra) y `...\METODOLOGIA.opencode\...` se buscaron literalmente en el registro y NO aparecen: las rutas declaradas usan separadores correctos. Sin correcciones necesarias.
 
 | Skill recomendada | Funcionalidad | Decisión | Justificación |

@@ -1,7 +1,7 @@
 # 05. Reglas de Negocio — TPI Metodologia
 
 - **RN-01: Prevención de Solapamiento de Turnos**
-  - El sistema no debe permitir agendar un turno para un mismo profesional (`dentist_id`) o un mismo box (`box_id`) si existe solapamiento de horario (`start_time` - `end_time`).
+  - El sistema no debe permitir agendar un turno para un mismo profesional (`dentist_id`) o un mismo box (`box_id`) si existe solapamiento de horario (`start_time` - `end_time`). La duración se deriva como `end_time − start_time`; el alta exige `end_time > start_time`.
 
 - **RN-02: Protección de Datos Sensibles de Salud (Ley 25.326)**
   - Todos los datos de historias clínicas, diagnósticos e imágenes de pacientes deben almacenarse con cifrado en reposo y acceso estrictamente segregado por `clinic_id`. Ningún usuario externo o de otra clínica puede acceder sin autorización explícita.
