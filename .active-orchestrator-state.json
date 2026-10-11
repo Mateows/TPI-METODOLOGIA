@@ -1,7 +1,12 @@
 {
   "version": 4,
-  "step": "ready",
+  "step": "done",
   "owner": "active-orchestrator",
+  "agents": {
+    "created_by": "agent-instruction",
+    "files": ["AGENTS.md", "CLAUDE.md"],
+    "reglas_applied": ["R1-R8 + sub-balas RN-08/RN-09", "espejo dual-plane intencional"]
+  },
   "skills": {
     "created_by": "find-skill",
     "recommended": ["mattpocock/skills@tdd", "jeffallan/claude-skills@fastapi-expert", "wshobson/agents@auth-implementation-patterns", "github/awesome-copilot@review-and-refactor", "sickn33/agentic-awesome-skills@react-nextjs-development"],
