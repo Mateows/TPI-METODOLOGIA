@@ -20,13 +20,18 @@
 | Crear y modificar skills | skill-creator | C:\Users\Mateows\.config\opencode\skills\skill-creator\SKILL.md |
 | Crear o actualizar skill registry | skill-registry | C:\Users\Mateows\.config\opencode\skills\skill-registry\SKILL.md |
 | Investigar competidores por URL | web-scraper | C:\Users\Mateows\.config\opencode\skills\web-scraper\SKILL.md |
-| Build features / fix bugs test-first, red-green-refactor | tdd | C:\Users\Mateows\.agents\skills\tdd\SKILL.md |
-| FastAPI, Pydantic, async Python, SQLAlchemy async, JWT, OpenAPI | fastapi-expert | C:\Users\Mateows\.agents\skills\fastapi-expert\SKILL.md |
-| Implementar auth/RBAC, securizar APIs, debug seguridad | auth-implementation-patterns | C:\Users\Mateows\.agents\skills\auth-implementation-patterns\SKILL.md |
+| Build features / fix bugs test-first, red-green-refactor | tdd | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\tdd\SKILL.md |
+| FastAPI, Pydantic, async Python, SQLAlchemy async, JWT, OpenAPI | fastapi-expert | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\fastapi-expert\SKILL.md |
+| Implementar auth/RBAC, securizar APIs, debug seguridad | auth-implementation-patterns | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\auth-implementation-patterns\SKILL.md |
 
 > **Nota naming:** el nombre canónico es `find-skills` (plural, según frontmatter `name: find-skills` del SKILL.md); el directorio en disco es `find-skill/` (singular). La fila usa el nombre canónico; el path conserva el directorio real.
 >
 > **Nota naming (2):** idem para `agents-md-generator` (frontmatter `name: agents-md-generator`) cuyo directorio en disco es `agent-instruction/`. Sin duplicada: `~/.claude/skills/` y `~/.config/opencode/skills/` contienen el mismo set global (9 dirs, mismo frontmatter); el registry apunta al path de opencode por convención.
+>
+> **Nota portabilidad (2026-10-11):** `tdd`, `fastapi-expert` y `auth-implementation-patterns`
+> viven versionadas en `.agents/skills/` del proyecto (visibles para todos los agentes y el
+> equipo); las copias en `C:\Users\Mateows\.agents\skills\` quedan como fallback global.
+> Las copias locales son snapshots (no se auto-actualizan con `npx skills update`).
 >
 > **Nota dedupe openspec-*:** `.agents/skills/openspec-*/SKILL.md` y `.opencode/skills/openspec-*/SKILL.md` son el mismo skill (difieren solo en el naming del slash-command: `/opsx-*` vs `/openspec-*`); canónico `.opencode/` con una sola fila por skill, sin duplicadas. `.claude/commands/opsx/*.md` (apply/archive/explore/propose/sync/update) son wrappers de comando sin SKILL.md → correctamente no registrados. `active-orchestrator` (solo global, meta-orquestador del flujo de fundación ya completada) queda excluido a propósito: nunca lo invoca un ejecutor.
 
