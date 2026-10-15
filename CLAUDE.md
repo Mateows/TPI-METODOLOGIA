@@ -42,7 +42,7 @@ El proyecto se ejecuta en base al índice canónico definido en `CHANGES.md` (**
 
 ## Reglas Duras (Específicas del Proyecto)
 
-> Reglas globales ya definidas en `~/.claude/CLAUDE.md` (orquestador, governance, TDD, engram): el proyecto las hereda. Acá viven solo las reglas específicas de este proyecto.
+> Reglas globales del harness a nivel usuario (orquestador, governance, TDD, engram): el proyecto las hereda. Acá viven solo las reglas específicas de este proyecto.
 
 1. **Aislamiento Multi-Tenant**: Toda consulta o mutación a la base de datos debe filtrar y validar estrictamente por `clinic_id`. NUNCA permitir acceso cruzado entre clínicas (Cumplimiento Ley 25.326).
 2. **Tipado Estricto**:

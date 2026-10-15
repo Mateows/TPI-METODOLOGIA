@@ -26,7 +26,7 @@
 
 > **Nota naming:** el nombre canónico es `find-skills` (plural, según frontmatter `name: find-skills` del SKILL.md); el directorio en disco es `find-skill/` (singular). La fila usa el nombre canónico; el path conserva el directorio real.
 >
-> **Nota naming (2):** idem para `agents-md-generator` (frontmatter `name: agents-md-generator`) cuyo directorio en disco es `agent-instruction/`. Sin duplicada: `~/.claude/skills/` y `~/.config/opencode/skills/` contienen el mismo set global (9 dirs, mismo frontmatter); el registry apunta al path de opencode por convención.
+> **Nota naming (2):** idem para `agents-md-generator` (frontmatter `name: agents-md-generator`) cuyo directorio en disco es `agent-instruction/`. Sin duplicada: `~/.config/opencode/skills/` es la fuente global efectiva (OpenCode, el harness en uso); `~/.claude/skills/` contiene el mismo set como espejo para Claude y no se usa en este proyecto.
 >
 > **Nota portabilidad (2026-10-11):** `tdd`, `fastapi-expert` y `auth-implementation-patterns`
 > viven versionadas en `.agents/skills/` del proyecto (visibles para todos los agentes y el
@@ -104,7 +104,7 @@
 - Generates root `AGENTS.md` + `CLAUDE.md` copy from KB 02 (stack table), CHANGES.md (roadmap summary), skill-registry (skill→role map); never inside `.claude/` or `openspec/`
 - Pre-checks: `knowledge-base/` + `02_descripcion_general.md` required; without CHANGES.md omits roadmap section with warning
 - Hard rules are the ONLY interactive part: derives stack-aware candidates, confirms via AskUserQuestion, writes only confirmed rules (`NUNCA X → hacer Y`)
-- Never duplicates `~/.claude/CLAUDE.md` global rules — references them with the inherit line instead
+- Never duplicates user-level global harness rules — references them with the inherit line instead
 
 ### skill-creator
 - Captures intent first (what / trigger phrases / output format / need for evals), then drafts skill, writes test prompts, runs evals, iterates on feedback
