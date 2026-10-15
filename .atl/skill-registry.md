@@ -6,27 +6,29 @@
 
 | Trigger | Skill | Path |
 |---------|-------|------|
-| Crear o actualizar AGENTS.md / CLAUDE.md | agents-md-generator | ~/.config/opencode/skills/agent-instruction/SKILL.md |
-| Investigar competidores / Discovery | discovery-research | ~/.config/opencode/skills/discovery-research/SKILL.md |
-| Encontrar y buscar skills | find-skills | ~/.config/opencode/skills/find-skill/SKILL.md |
-| Crear base de conocimiento (KB) | kb-creator | ~/.config/opencode/skills/kb-creator/SKILL.md |
+| Crear o actualizar AGENTS.md / CLAUDE.md | agents-md-generator | opencode/skills/agent-instruction/SKILL.md |
+| Investigar competidores / Discovery | discovery-research | opencode/skills/discovery-research/SKILL.md |
+| Encontrar y buscar skills | find-skills | opencode/skills/find-skill/SKILL.md |
+| Crear base de conocimiento (KB) | kb-creator | opencode/skills/kb-creator/SKILL.md |
 | Implementar tasks de OpenSpec change | openspec-apply-change | .agents/skills/openspec-apply-change/SKILL.md |
 | Archivar change de OpenSpec | openspec-archive-change | .agents/skills/openspec-archive-change/SKILL.md |
 | Explorar ideas en OpenSpec | openspec-explore | .agents/skills/openspec-explore/SKILL.md |
 | Proponer change en OpenSpec | openspec-propose | .agents/skills/openspec-propose/SKILL.md |
 | Sincronizar delta specs | openspec-sync-specs | .agents/skills/openspec-sync-specs/SKILL.md |
 | Actualizar planning de change | openspec-update-change | .agents/skills/openspec-update-change/SKILL.md |
-| Generar roadmap CHANGES.md | roadmap-generator | ~/.config/opencode/skills/roadmap-generator/SKILL.md |
-| Crear y modificar skills | skill-creator | ~/.config/opencode/skills/skill-creator/SKILL.md |
-| Crear o actualizar skill registry | skill-registry | ~/.config/opencode/skills/skill-registry/SKILL.md |
-| Investigar competidores por URL | web-scraper | ~/.config/opencode/skills/web-scraper/SKILL.md |
+| Generar roadmap CHANGES.md | roadmap-generator | opencode/skills/roadmap-generator/SKILL.md |
+| Crear y modificar skills | skill-creator | opencode/skills/skill-creator/SKILL.md |
+| Crear o actualizar skill registry | skill-registry | opencode/skills/skill-registry/SKILL.md |
+| Investigar competidores por URL | web-scraper | opencode/skills/web-scraper/SKILL.md |
 | Build features / fix bugs test-first, red-green-refactor | tdd | .agents/skills/tdd/SKILL.md |
 | FastAPI, Pydantic, async Python, SQLAlchemy async, JWT, OpenAPI | fastapi-expert | .agents/skills/fastapi-expert/SKILL.md |
 | Implementar auth/RBAC, securizar APIs, debug seguridad | auth-implementation-patterns | .agents/skills/auth-implementation-patterns/SKILL.md |
 
+> **Leyenda de paths:** `opencode/skills/` = directorio de skills del harness OpenCode (típicamente `~/.config/opencode/skills/`); `.agents/skills/` = skills versionadas en este repo.
+
 > **Nota naming:** el nombre canónico es `find-skills` (plural, según frontmatter `name: find-skills` del SKILL.md); el directorio en disco es `find-skill/` (singular). La fila usa el nombre canónico; el path conserva el directorio real.
 >
-> **Nota naming (2):** idem para `agents-md-generator` (frontmatter `name: agents-md-generator`) cuyo directorio en disco es `agent-instruction/`. Sin duplicada: `~/.config/opencode/skills/` es la fuente global efectiva (OpenCode, el harness en uso); `~/.claude/skills/` contiene el mismo set como espejo para Claude y no se usa en este proyecto.
+> **Nota naming (2):** idem para `agents-md-generator` (frontmatter `name: agents-md-generator`) cuyo directorio en disco es `agent-instruction/`. Sin duplicada: `opencode/skills/` es la fuente global efectiva (OpenCode, el harness en uso); `~/.claude/skills/` contiene el mismo set como espejo para Claude y no se usa en este proyecto.
 >
 > **Nota portabilidad (2026-10-11):** `tdd`, `fastapi-expert` y `auth-implementation-patterns`
 > viven versionadas en `.agents/skills/` del proyecto (visibles para todos los agentes y el
