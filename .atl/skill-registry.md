@@ -6,23 +6,23 @@
 
 | Trigger | Skill | Path |
 |---------|-------|------|
-| Crear o actualizar AGENTS.md / CLAUDE.md | agents-md-generator | C:\Users\Mateows\.config\opencode\skills\agent-instruction\SKILL.md |
-| Investigar competidores / Discovery | discovery-research | C:\Users\Mateows\.config\opencode\skills\discovery-research\SKILL.md |
-| Encontrar y buscar skills | find-skills | C:\Users\Mateows\.config\opencode\skills\find-skill\SKILL.md |
-| Crear base de conocimiento (KB) | kb-creator | C:\Users\Mateows\.config\opencode\skills\kb-creator\SKILL.md |
-| Implementar tasks de OpenSpec change | openspec-apply-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-apply-change\SKILL.md |
-| Archivar change de OpenSpec | openspec-archive-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-archive-change\SKILL.md |
-| Explorar ideas en OpenSpec | openspec-explore | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-explore\SKILL.md |
-| Proponer change en OpenSpec | openspec-propose | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-propose\SKILL.md |
-| Sincronizar delta specs | openspec-sync-specs | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-sync-specs\SKILL.md |
-| Actualizar planning de change | openspec-update-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-update-change\SKILL.md |
-| Generar roadmap CHANGES.md | roadmap-generator | C:\Users\Mateows\.config\opencode\skills\roadmap-generator\SKILL.md |
-| Crear y modificar skills | skill-creator | C:\Users\Mateows\.config\opencode\skills\skill-creator\SKILL.md |
-| Crear o actualizar skill registry | skill-registry | C:\Users\Mateows\.config\opencode\skills\skill-registry\SKILL.md |
-| Investigar competidores por URL | web-scraper | C:\Users\Mateows\.config\opencode\skills\web-scraper\SKILL.md |
-| Build features / fix bugs test-first, red-green-refactor | tdd | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\tdd\SKILL.md |
-| FastAPI, Pydantic, async Python, SQLAlchemy async, JWT, OpenAPI | fastapi-expert | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\fastapi-expert\SKILL.md |
-| Implementar auth/RBAC, securizar APIs, debug seguridad | auth-implementation-patterns | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\auth-implementation-patterns\SKILL.md |
+| Crear o actualizar AGENTS.md / CLAUDE.md | agents-md-generator | ~/.config/opencode/skills/agent-instruction/SKILL.md |
+| Investigar competidores / Discovery | discovery-research | ~/.config/opencode/skills/discovery-research/SKILL.md |
+| Encontrar y buscar skills | find-skills | ~/.config/opencode/skills/find-skill/SKILL.md |
+| Crear base de conocimiento (KB) | kb-creator | ~/.config/opencode/skills/kb-creator/SKILL.md |
+| Implementar tasks de OpenSpec change | openspec-apply-change | .agents/skills/openspec-apply-change/SKILL.md |
+| Archivar change de OpenSpec | openspec-archive-change | .agents/skills/openspec-archive-change/SKILL.md |
+| Explorar ideas en OpenSpec | openspec-explore | .agents/skills/openspec-explore/SKILL.md |
+| Proponer change en OpenSpec | openspec-propose | .agents/skills/openspec-propose/SKILL.md |
+| Sincronizar delta specs | openspec-sync-specs | .agents/skills/openspec-sync-specs/SKILL.md |
+| Actualizar planning de change | openspec-update-change | .agents/skills/openspec-update-change/SKILL.md |
+| Generar roadmap CHANGES.md | roadmap-generator | ~/.config/opencode/skills/roadmap-generator/SKILL.md |
+| Crear y modificar skills | skill-creator | ~/.config/opencode/skills/skill-creator/SKILL.md |
+| Crear o actualizar skill registry | skill-registry | ~/.config/opencode/skills/skill-registry/SKILL.md |
+| Investigar competidores por URL | web-scraper | ~/.config/opencode/skills/web-scraper/SKILL.md |
+| Build features / fix bugs test-first, red-green-refactor | tdd | .agents/skills/tdd/SKILL.md |
+| FastAPI, Pydantic, async Python, SQLAlchemy async, JWT, OpenAPI | fastapi-expert | .agents/skills/fastapi-expert/SKILL.md |
+| Implementar auth/RBAC, securizar APIs, debug seguridad | auth-implementation-patterns | .agents/skills/auth-implementation-patterns/SKILL.md |
 
 > **Nota naming:** el nombre canónico es `find-skills` (plural, según frontmatter `name: find-skills` del SKILL.md); el directorio en disco es `find-skill/` (singular). La fila usa el nombre canónico; el path conserva el directorio real.
 >
@@ -30,7 +30,7 @@
 >
 > **Nota portabilidad (2026-10-11):** `tdd`, `fastapi-expert` y `auth-implementation-patterns`
 > viven versionadas en `.agents/skills/` del proyecto (visibles para todos los agentes y el
-> equipo); las copias en `C:\Users\Mateows\.agents\skills\` quedan como fallback global.
+> equipo); las copias en `~/.agents/skills/` quedan como fallback global.
 > Las copias locales son snapshots (no se auto-actualizan con `npx skills update`).
 >
 > **Nota dedupe openspec-*:** `.agents/skills/openspec-*/SKILL.md` y `.opencode/skills/openspec-*/SKILL.md` son el mismo skill (difieren solo en el naming del slash-command: `/opsx-*` vs `/openspec-*`); canónico `.agents/` (proyecto, naming `/opsx-*` coherente con `.claude/commands/opsx/`), con una sola fila por skill, sin duplicadas. `.claude/commands/opsx/*.md` (apply/archive/explore/propose/sync/update) son wrappers de comando sin SKILL.md → correctamente no registrados. `active-orchestrator` (solo global, meta-orquestador del flujo de fundación ya completada) queda excluido a propósito: nunca lo invoca un ejecutor.
