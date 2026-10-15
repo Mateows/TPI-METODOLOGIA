@@ -10,12 +10,12 @@
 | Investigar competidores / Discovery | discovery-research | C:\Users\Mateows\.config\opencode\skills\discovery-research\SKILL.md |
 | Encontrar y buscar skills | find-skills | C:\Users\Mateows\.config\opencode\skills\find-skill\SKILL.md |
 | Crear base de conocimiento (KB) | kb-creator | C:\Users\Mateows\.config\opencode\skills\kb-creator\SKILL.md |
-| Implementar tasks de OpenSpec change | openspec-apply-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.opencode\skills\openspec-apply-change\SKILL.md |
-| Archivar change de OpenSpec | openspec-archive-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.opencode\skills\openspec-archive-change\SKILL.md |
-| Explorar ideas en OpenSpec | openspec-explore | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.opencode\skills\openspec-explore\SKILL.md |
-| Proponer change en OpenSpec | openspec-propose | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.opencode\skills\openspec-propose\SKILL.md |
-| Sincronizar delta specs | openspec-sync-specs | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.opencode\skills\openspec-sync-specs\SKILL.md |
-| Actualizar planning de change | openspec-update-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.opencode\skills\openspec-update-change\SKILL.md |
+| Implementar tasks de OpenSpec change | openspec-apply-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-apply-change\SKILL.md |
+| Archivar change de OpenSpec | openspec-archive-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-archive-change\SKILL.md |
+| Explorar ideas en OpenSpec | openspec-explore | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-explore\SKILL.md |
+| Proponer change en OpenSpec | openspec-propose | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-propose\SKILL.md |
+| Sincronizar delta specs | openspec-sync-specs | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-sync-specs\SKILL.md |
+| Actualizar planning de change | openspec-update-change | C:\Users\Mateows\Desktop\TPI METODOLOGIA\.agents\skills\openspec-update-change\SKILL.md |
 | Generar roadmap CHANGES.md | roadmap-generator | C:\Users\Mateows\.config\opencode\skills\roadmap-generator\SKILL.md |
 | Crear y modificar skills | skill-creator | C:\Users\Mateows\.config\opencode\skills\skill-creator\SKILL.md |
 | Crear o actualizar skill registry | skill-registry | C:\Users\Mateows\.config\opencode\skills\skill-registry\SKILL.md |
@@ -33,7 +33,7 @@
 > equipo); las copias en `C:\Users\Mateows\.agents\skills\` quedan como fallback global.
 > Las copias locales son snapshots (no se auto-actualizan con `npx skills update`).
 >
-> **Nota dedupe openspec-*:** `.agents/skills/openspec-*/SKILL.md` y `.opencode/skills/openspec-*/SKILL.md` son el mismo skill (difieren solo en el naming del slash-command: `/opsx-*` vs `/openspec-*`); canónico `.opencode/` con una sola fila por skill, sin duplicadas. `.claude/commands/opsx/*.md` (apply/archive/explore/propose/sync/update) son wrappers de comando sin SKILL.md → correctamente no registrados. `active-orchestrator` (solo global, meta-orquestador del flujo de fundación ya completada) queda excluido a propósito: nunca lo invoca un ejecutor.
+> **Nota dedupe openspec-*:** `.agents/skills/openspec-*/SKILL.md` y `.opencode/skills/openspec-*/SKILL.md` son el mismo skill (difieren solo en el naming del slash-command: `/opsx-*` vs `/openspec-*`); canónico `.agents/` (proyecto, naming `/opsx-*` coherente con `.claude/commands/opsx/`), con una sola fila por skill, sin duplicadas. `.claude/commands/opsx/*.md` (apply/archive/explore/propose/sync/update) son wrappers de comando sin SKILL.md → correctamente no registrados. `active-orchestrator` (solo global, meta-orquestador del flujo de fundación ya completada) queda excluido a propósito: nunca lo invoca un ejecutor.
 
 ## Compact Rules
 
