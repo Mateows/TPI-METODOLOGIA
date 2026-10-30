@@ -18,6 +18,7 @@
 | Actualizar planning de change | openspec-update-change | .agents/skills/openspec-update-change/SKILL.md |
 | Generar roadmap CHANGES.md | roadmap-generator | opencode/skills/roadmap-generator/SKILL.md |
 | Crear y modificar skills | skill-creator | opencode/skills/skill-creator/SKILL.md |
+| Revisar agendas de citas | revisor-de-agendas-de-citas | .agents/skills/revisor-de-agendas-de-citas/SKILL.md |
 | Crear o actualizar skill registry | skill-registry | opencode/skills/skill-registry/SKILL.md |
 | Investigar competidores por URL | web-scraper | opencode/skills/web-scraper/SKILL.md |
 | Build features / fix bugs test-first, red-green-refactor | tdd | .agents/skills/tdd/SKILL.md |

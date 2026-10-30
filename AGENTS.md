@@ -29,6 +29,14 @@ y trae la guía de ruteo (qué leer según la tarea: proponer, turnos, auth, caj
 
 > **Nota:** Los compact rules de cada skill los resuelve el orquestador desde `.atl/skill-registry.md` (generado por `skill-registry`; versionado SÍ por D-5).
 
+### Skill propia del práctico
+
+- Usar `revisor-de-agendas-de-citas` al preparar o revisar un change de agenda,
+  especialmente para validar `clinic_id`, solapamientos, horarios UTC, estados
+  y escenarios verificables.
+- La skill solo revisa y propone correcciones; no implementa código ni marca
+  changes como completados.
+
 ---
 
 ## Roadmap de Changes
