@@ -128,6 +128,13 @@ C-01 (Foundation Setup)
   - `knowledge-base/04_modelo_de_datos.md` §1 (Box, Appointment)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-01
   - `knowledge-base/07_flujos_principales.md` §Flujo 1
+- **Artefactos (preparados, sin implementar)**: `openspec/changes/appointment-agenda/`
+  (proposal, `specs/appointment-agenda/spec.md`, design, tasks).
+- **Revisión con skill propia**: `docs/skills-mcp/evidencias/revision-skill-c04.md`
+  (11 observaciones: 1 crítica, 5 importantes, 5 menores).
+- **Hallazgos a resolver antes de implementar**: origen del `clinic_id` persistido;
+  escenarios de solapamiento faltantes (box, contención, coincidencia exacta, canceladas);
+  datetimes con offset/*naive* fuera de la spec.
 
 ### [C-05] `odontogram-clinical-records`
 - **Estado**: `[ ]` pendiente

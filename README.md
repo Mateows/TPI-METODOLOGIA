@@ -35,6 +35,10 @@ pytest  # 23 tests
 - [knowledge-base/](knowledge-base/) — visión, reglas de negocio, modelo de datos y arquitectura.
 - [CHANGES.md](CHANGES.md) — roadmap de changes y camino crítico.
 - [docs/discovery/informe-discovery.pdf](docs/discovery/informe-discovery.pdf) — informe de discovery.
+- [docs/skills-mcp/mcp-github.md](docs/skills-mcp/mcp-github.md) — integración del MCP `github`
+  (requisitos, variables de entorno, verificación y solución de problemas).
+- [docs/skills-mcp/](docs/skills-mcp/) — ficha de investigación y informe de aplicación de
+  la skill propia y el MCP.
 
 ## Notas
 
