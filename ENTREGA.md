@@ -10,7 +10,7 @@
 |---|---|
 | Repositorio | https://github.com/Mateows/TPI-METODOLOGIA |
 | Rama | `tp-skills-mcp` |
-| Commit de artefactos | `49e15cf` — `feat(mcp): integrar GitHub MCP Server y documentar la configuracion` |
+| Commits de la entrega | `1112134` skill propia · `49e15cf` MCP + evidencias · `95784ab` artefactos de C-04 · `3faf9b9` informes |
 | Ficha de investigación | [`docs/skills-mcp/investigacion.md`](docs/skills-mcp/investigacion.md) |
 | Informe de aplicación | [`docs/skills-mcp/aplicacion.md`](docs/skills-mcp/aplicacion.md) |
 | Video de demostración | _(pendiente — completar con el enlace accesible)_ |
