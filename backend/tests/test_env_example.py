@@ -39,6 +39,15 @@ def test_env_example_documents_optional_integration_keys():
     assert {"WHATSAPP_API_TOKEN", "AFIP_CERT_PATH", "AFIP_CUIT"} <= _example_keys()
 
 
+def test_env_example_documents_token_lifetime_and_bootstrap_keys():
+    """C-02 knobs (token lifetimes + optional bootstrap password) are documented."""
+    assert {
+        "ACCESS_TOKEN_EXPIRE_MINUTES",
+        "REFRESH_TOKEN_EXPIRE_DAYS",
+        "BOOTSTRAP_ADMIN_PASSWORD",
+    } <= _example_keys()
+
+
 def test_env_example_contains_no_real_secrets():
     """Committed example must hold placeholders, never credential-looking values."""
     body = ENV_EXAMPLE.read_text()

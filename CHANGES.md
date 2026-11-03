@@ -88,7 +88,7 @@ C-01 (Foundation Setup)
   - `knowledge-base/08_arquitectura_propuesta.md` §2, §3
 
 ### [C-02] `core-models-tenants`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` implementado y verificado (2026-11-02; 22/24 tareas, `openspec validate --strict` verde y 134 tests en verde); archivo pendiente — 6.3 y 7.1 requieren PostgreSQL de Docker Compose
 - **Scope**:
   - Modelos SQLAlchemy para `Clinic` y `User` con segregación multi-tenant por `clinic_id`.
   - Sistema de autenticación JWT (Access Token + Refresh Token) y encriptación Bcrypt.
@@ -122,7 +122,9 @@ C-01 (Foundation Setup)
   - Modelos SQLAlchemy para `Box` y `Appointment` (Turnos).
   - Implementación de regla de negocio **RN-01** (prevención de solapamiento de turnos por profesional y box).
   - Endpoints REST para gestión de agenda, cambios de estado (`scheduled`, `confirmed`, `attended`, `cancelled`).
-- **Dependencias**: `C-02`
+- **Dependencias**: `C-02` ✓ (satisfecha el 2026-11-02: contexto multi-tenant,
+  RBAC y `/api/v1/auth/*` ya disponibles; C-04 sigue `[ ]` pendiente de
+  implementación)
 - **Governance**: ALTO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Box, Appointment)

@@ -50,9 +50,11 @@ proveer usuarios y contexto de clínica antes de integrar la agenda.
 - **[Concurrencia]** Dos altas simultáneas podrían competir por el mismo
   intervalo -> usar aislamiento/restricción de PostgreSQL y traducir la
   violación a conflicto HTTP, sin exponer detalles SQL.
-- **[Dependencia C-02]** No existe todavía contexto real de usuario y clínica ->
-  dejar adaptadores explícitos para el contexto y bloquear la integración hasta
-  que C-02 esté disponible.
+- **[Dependencia C-02 — resuelta el 2026-11-02]** El contexto real de usuario y
+  clínica ya existe en `core-models-tenants` (`get_current_principal`,
+  `require_roles`, `TenantScopedRepository`): al implementar C-04 se consume ese
+  contexto en lugar de los adaptadores provisionales. C-04 sigue sin
+  implementar.
 - **[UTC]** Payloads con offsets ambiguos pueden producir errores de agenda ->
   validar datetimes conscientes y normalizarlos a UTC en el límite de entrada.
 

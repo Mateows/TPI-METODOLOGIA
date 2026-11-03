@@ -32,6 +32,6 @@ los endpoints y reduce el riesgo de inconsistencias en los turnos.
 
 - Backend: `models/`, `services/`, `api/`, migraciones y pruebas de agenda.
 - Documentación: referencia del change en `CHANGES.md` y KB relacionada.
-- La implementación dependerá de C-02 para usuarios/profesionales y contexto
-  multi-tenant; este documento no implementa ni marca esa dependencia como
-  completada.
+- La implementación depende de C-02 para usuarios/profesionales y contexto
+  multi-tenant, ya disponible desde `core-models-tenants` (2026-11-02); este
+  documento no implementa C-04 ni modifica esa capacidad.

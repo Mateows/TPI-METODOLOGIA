@@ -12,11 +12,19 @@ import os
 import subprocess
 import sys
 import tempfile
+import uuid
+from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from app.models.clinic import Clinic
+    from app.models.user import User
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 _TMP = Path(tempfile.gettempdir())
@@ -26,6 +34,13 @@ os.environ.setdefault(
     "TEST_DATABASE_URL", f"sqlite+aiosqlite:///{_TMP / 'tpi_foundation_test.db'}"
 )
 os.environ.setdefault("SECRET_KEY", "test-secret-foundation-harness")
+
+
+def _iter_dependency_calls(dependant):
+    """Yield every callable a FastAPI route depends on, transitively."""
+    for dependency in dependant.dependencies:
+        yield dependency.call
+        yield from _iter_dependency_calls(dependency)
 
 
 @pytest.fixture(scope="session")
@@ -90,6 +105,85 @@ async def client(test_session):
         yield test_session
 
     app.dependency_overrides[get_db] = _override
+    # ``tests/test_health.py`` reloads ``app.core.database``, which creates a new
+    # ``get_db`` object while routers keep the one captured by ``Depends`` at
+    # import time. Override every ``get_db`` wired into the app so the isolated
+    # test session is always used, regardless of module state.
+    for route in app.routes:
+        dependant = getattr(route, "dependant", None)
+        if dependant is None:
+            continue
+        for call in _iter_dependency_calls(dependant):
+            if (
+                getattr(call, "__module__", "") == "app.core.database"
+                and getattr(call, "__name__", "") == "get_db"
+            ):
+                app.dependency_overrides[call] = _override
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as http:
         yield http
     app.dependency_overrides.clear()
+
+
+@dataclass
+class SeededTenant:
+    """A clinic + user pair created inside the current test transaction."""
+
+    clinic: Clinic
+    user: User
+
+    def token(self, *, clinic_id: str | None = None, expires_delta: timedelta | None = None) -> str:
+        from app.core.security import create_access_token
+
+        return create_access_token(
+            subject=str(self.user.id),
+            clinic_id=clinic_id or str(self.clinic.id),
+            role=self.user.role,
+            expires_delta=expires_delta,
+        )
+
+
+@pytest.fixture()
+async def seed_tenant(test_session):
+    """Factory fixture: clone-safe clinic/user seeding for auth tests."""
+    from app.core.security import hash_password
+    from app.models.clinic import Clinic
+    from app.models.user import User
+
+    counter = {"n": 0}
+
+    async def _seed(
+        *,
+        email: str | None = None,
+        role: str = "admin",
+        password: str = "Secreta-123",
+        clinic_name: str | None = None,
+        clinic_slug: str | None = None,
+        tax_id: str | None = None,
+        clinic_active: bool = True,
+        user_active: bool = True,
+    ) -> SeededTenant:
+        counter["n"] += 1
+        index = counter["n"]
+        clinic = Clinic(
+            name=clinic_name or f"Clinica {index}",
+            slug=clinic_slug or f"clinica-{index}-{uuid.uuid4().hex[:8]}",
+            tax_id=tax_id or f"30-{index:08d}-1",
+            is_active=clinic_active,
+        )
+        test_session.add(clinic)
+        await test_session.flush()
+
+        user = User(
+            clinic_id=clinic.id,
+            email=email or f"user{index}@example.com",
+            password_hash=hash_password(password),
+            full_name=f"Usuario {index}",
+            role=role,
+            is_active=user_active,
+        )
+        test_session.add(user)
+        await test_session.flush()
+        return SeededTenant(clinic=clinic, user=user)
+
+    return _seed
