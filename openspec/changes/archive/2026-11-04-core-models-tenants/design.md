@@ -76,8 +76,8 @@ JWT stateless (rechazada: no permite logout ni revocación, que el spec exige).
 
 ### D4 — Resolución de contexto en una dependencia
 
-`get_current_principal` decodifica el token y ejecuta una consulta con join
-`User` + `Clinic` que verifica `user.is_active` y `clinic.is_active`. Usuario
+`get_current_principal` decodifica el token y obtiene `User` + `Clinic` vía
+`UserRepository.get_with_clinic_by_id` (D13) y verifica `user.is_active` y `clinic.is_active`. Usuario
 inactivo o token inválido → 401; clínica inactiva → 403, porque la sesión es
 auténtica pero el tenant no puede operar (coincide con
 `specs/tenant-isolation`). Así la baja de un usuario surte efecto en el
@@ -91,7 +91,7 @@ Todo servicio recibe el `Principal` y agrega `clinic_id == principal.clinic_id`
 en cada consulta; no se usa un event listener global del ORM ni un `with_tenant()`
 implícito porque ambos ocultan el filtro y son difíciles de auditar. Se agrega
 `TenantScopedRepository[T]` como base mínima para lecturas por id, que devuelve
-`None` cuando el registro es de otra clínica, y un test de contrato que lo
+`None` cuando el registro es de otra clínica (ubicado en `app/repositories/base.py`, D13), y un test de contrato que lo
 verifica. Los routers declaran rol con `require_roles(...)`; un endpoint
 protegido sin anotación de roles exige autenticación y contexto de clínica, pero
 no restringe rol, y cualquier rol fuera de la lista declarada recibe 403. El
@@ -155,6 +155,33 @@ aparte: el profesional es un `User` activo de la clínica con rol `dentist`, de
 modo que C-04 puede referenciar `users.id` y filtrar por `clinic_id`. Cualquier
 atributo profesional futuro (matrícula, especialidad) se agrega como columna
 nullable en `User`, no como entidad paralela.
+
+### D13 — Capa Repository para toda la persistencia
+
+Toda consulta o escritura SQLAlchemy vive en `app/repositories/`; los services
+(`auth`, `users`, `principal`) y el CLI de bootstrap sólo orquestan reglas de
+negocio y nunca construyen `select(...)` ni llaman a `db.execute/scalar/get/add`.
+Repositorios:
+
+- `base.py`: `TenantScopedRepository[T]` (movido desde `services/tenant.py`, que
+  lo re-exporta por compatibilidad; `resolve_clinic_id` queda en services).
+- `users.py`: `UserRepository` — `get_with_clinic_by_email`,
+  `get_with_clinic_by_id`, `email_exists`, `add`, `list_for_clinic`,
+  `get_in_clinic`, `count_other_active_admins`.
+- `refresh_tokens.py`: `RefreshTokenRepository` — `add`,
+  `get_with_account_by_hash`, `revoke_family`, `revoke_all_for_user`.
+- `clinics.py`: `ClinicRepository` — `get_by_tax_id`, `slug_exists`, `add`.
+
+Los repositorios hacen `flush`, nunca `commit`: la frontera transaccional sigue
+donde estaba (router, o el service en los caminos de revocación que deben
+sobrevivir a la respuesta de error, D3). Las lecturas acotadas a una clínica
+reciben `clinic_id` explícito (D5); las únicas lecturas globales son las previas
+a tener un `Principal` (login por email, refresh por hash, unicidad global de
+email D6, bootstrap) y están nombradas como tales. Un test de arquitectura
+impide que reaparezcan consultas en `app/services/`.
+Alternativa: dejar consultas en services (rechazada en la revisión de C-02:
+viola la separación de capas de AGENTS.md regla 4) y Unit of Work genérico
+(rechazado: sobredimensionado para el MVP).
 
 ## Risks / Trade-offs
 

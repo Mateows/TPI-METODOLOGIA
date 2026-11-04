@@ -80,7 +80,7 @@ El proyecto se ejecuta en base al índice canónico definido en `CHANGES.md` (**
    - Presupuesto aceptado genera cargos en cuenta corriente del paciente (`Budget` → `AccountEntry`); sin firma digital en MVP (firma → V1.5) (RN-08, D-1).
    - Liquidación automática de comisiones/honorarios fuera del MVP → V2; en V1 solo métrica de visibilidad, sin motor de liquidación (RN-09, D-1).
 4. **Clean Architecture en FastAPI**:
-   - Separación estricta en capas: Routers (`api/`), Lógica de negocio (`services/`), y Persistencia (`models/` / SQLAlchemy).
+   - Separación estricta en capas: Routers (`api/`), Lógica de negocio (`services/`), Acceso a datos (`repositories/`), y Modelos ORM (`models/` / SQLAlchemy). Ningún servicio ni CLI construye consultas ni llama métodos de persistencia sobre la sesión directamente.
 5. **Manejo de Errores y Excepciones Tipadas**:
    - Backend: Uso de excepciones HTTP semánticas y customizadas; prohibido exponer trazas internas de base de datos.
    - Frontend: Control robusto de errores de red en peticiones asíncronas con feedback visual.

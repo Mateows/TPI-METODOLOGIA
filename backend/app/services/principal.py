@@ -12,7 +12,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import utcnow
@@ -20,6 +19,7 @@ from app.core.errors import AuthenticationError, AuthorizationError
 from app.core.security import TokenError, decode_access_token
 from app.models.clinic import Clinic
 from app.models.user import User
+from app.repositories.users import UserRepository
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,13 +63,7 @@ async def resolve_principal(
     user_id = _as_uuid(claims.get("sub"))
     token_clinic_id = _as_uuid(claims.get("clinic_id"))
 
-    row = (
-        await db.execute(
-            select(User, Clinic)
-            .join(Clinic, User.clinic_id == Clinic.id)
-            .where(User.id == user_id)
-        )
-    ).first()
+    row = await UserRepository(db).get_with_clinic_by_id(user_id)
     if row is None:
         raise AuthenticationError("unknown account")
 

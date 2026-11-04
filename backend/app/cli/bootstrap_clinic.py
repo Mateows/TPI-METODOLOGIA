@@ -22,13 +22,14 @@ import sys
 import unicodedata
 from collections.abc import Callable, Sequence
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import hash_password
 from app.models.clinic import Clinic
 from app.models.user import User
+from app.repositories.clinics import ClinicRepository
+from app.repositories.users import UserRepository
 
 # Same bounds as the API contract (app/schemas/users.py): a weak or oversized
 # bootstrap password must be refused before anything is persisted.
@@ -80,7 +81,8 @@ async def _unique_slug(db: AsyncSession, base: str) -> str:
     """Return ``base`` or ``base-2``, ``base-3``… so the unique slug holds."""
     candidate = base
     suffix = 2
-    while await db.scalar(select(Clinic.id).where(Clinic.slug == candidate)):
+    clinics = ClinicRepository(db)
+    while await clinics.slug_exists(candidate):
         candidate = f"{base}-{suffix}"
         suffix += 1
     return candidate
@@ -119,12 +121,11 @@ async def _bootstrap(
     name = args.name.strip()
     full_name = args.full_name.strip()
 
-    clinic = (
-        await db.execute(select(Clinic).where(Clinic.tax_id == tax_id))
-    ).scalar_one_or_none()
-    existing_user = (
-        await db.execute(select(User).where(User.email == email))
-    ).scalar_one_or_none()
+    clinics = ClinicRepository(db)
+    users = UserRepository(db)
+    clinic = await clinics.get_by_tax_id(tax_id)
+    account = await users.get_with_clinic_by_email(email)
+    existing_user = None if account is None else account[0]
 
     # The email is globally unique (D6): reusing it in another tenant would
     # hijack an identity, so it is refused instead of silently re-scoped.
@@ -161,8 +162,7 @@ async def _bootstrap(
             db, args.slug.strip() if args.slug else _slugify(name)
         )
         clinic = Clinic(name=name, slug=slug, tax_id=tax_id, is_active=True)
-        db.add(clinic)
-        await db.flush()
+        await clinics.add(clinic)
         print(f"clinic created: {name!r} (tax_id={tax_id}, slug={slug}, id={clinic.id})")
     else:
         print(
@@ -178,8 +178,7 @@ async def _bootstrap(
         role="admin",
         is_active=True,
     )
-    db.add(admin)
-    await db.flush()
+    await users.add(admin)
     print(f"admin user created: {email} (id={admin.id}, role=admin)")
     return 0
 

@@ -112,6 +112,29 @@
 - [x] 7.3 Actualizar el estado de `C-02` en `CHANGES.md` y verificar que
   `appointment-agenda` deja de estar bloqueado por su dependencia.
 
+## 8. Remediación de revisión (capa Repository, D13)
+
+- [x] 8.1 RED: agregar `backend/tests/test_architecture.py` que falle si algún
+  módulo de `app/services/` o `app/cli/` construye `select(`/`func.` o llama a
+  `.execute(`/`.scalar(`/`.get(`/`.add(` sobre la sesión; verificar que hoy
+  falla sobre `auth.py`, `users.py`, `principal.py` y `bootstrap_clinic.py`.
+- [x] 8.2 Crear `app/repositories/` (base, users, refresh_tokens, clinics) con
+  tests unitarios por método en `backend/tests/test_repositories.py`,
+  incluyendo que las lecturas por clínica no devuelven registros ajenos.
+- [x] 8.3 Migrar `services/auth.py`, `services/users.py`,
+  `services/principal.py` y `cli/bootstrap_clinic.py` a los repositorios sin
+  cambiar comportamiento ni fronteras de commit; verificar test 8.1 en verde y
+  los 136 tests existentes sin modificaciones de aserciones.
+- [x] 8.4 Ejecutar la suite completa con SQLite y con PostgreSQL de Compose
+  (`TEST_DATABASE_URL` → `tpi_test`) y registrar el conteo en el cierre.
+- [x] 8.5 Re-ejecutar el bootstrap documentado en `backend/docs/api-auth.md`
+  contra `tpi_dev` (dos corridas, idempotente) y actualizar la salida
+  documentada si cambió.
+- [x] 8.6 Agregar la capa `repositories/` a la regla 4 de `AGENTS.md`/`CLAUDE.md`
+  y actualizar `C-02` en `CHANGES.md` con el estado exacto (tareas, evidencia de
+  6.3/7.1 del commit `065a778`, conteo de tests y fecha), sin marcarlo
+  verificado hasta cerrar 8.4–8.5.
+
 ## Workflow follow-up
 
 - Aplicar Strict TDD: escribir primero el test o comando de verificación

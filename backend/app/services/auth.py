@@ -17,7 +17,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -38,6 +37,8 @@ from app.core.security import (
 from app.models.clinic import Clinic
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
+from app.repositories.refresh_tokens import RefreshTokenRepository
+from app.repositories.users import UserRepository
 from app.services.principal import Principal
 
 
@@ -148,8 +149,7 @@ async def _persist_refresh(
         issued_at=issued_at,
         expires_at=issued_at + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
-    db.add(row)
-    await db.flush()
+    await RefreshTokenRepository(db).add(row)
     return raw, row
 
 
@@ -166,13 +166,7 @@ async def authenticate(
     same generic 401 so nothing is disclosed (spec "Invalid credentials reveal
     nothing"). A closed tenant answers 403 because the identity is authentic.
     """
-    row = (
-        await db.execute(
-            select(User, Clinic)
-            .join(Clinic, User.clinic_id == Clinic.id)
-            .where(User.email == email.strip().lower())
-        )
-    ).first()
+    row = await UserRepository(db).get_with_clinic_by_email(email.strip().lower())
     if row is None:
         _log_login_failure()
         raise InvalidCredentials()
@@ -210,14 +204,9 @@ async def _load_session_account(
     db: AsyncSession, raw_refresh: str
 ) -> tuple[RefreshToken, User, Clinic]:
     """Load the refresh row with its user and clinic, or fail with 401."""
-    row = (
-        await db.execute(
-            select(RefreshToken, User, Clinic)
-            .join(User, RefreshToken.user_id == User.id)
-            .join(Clinic, User.clinic_id == Clinic.id)
-            .where(RefreshToken.token_hash == hash_refresh_token(raw_refresh))
-        )
-    ).first()
+    row = await RefreshTokenRepository(db).get_with_account_by_hash(
+        hash_refresh_token(raw_refresh)
+    )
     if row is None:
         raise SessionRevoked()
     token_row, user, clinic = row
@@ -230,17 +219,7 @@ async def _load_session_account(
 async def _revoke_family(
     db: AsyncSession, family_id: uuid.UUID, revoked_at: datetime
 ) -> None:
-    rows = (
-        await db.execute(
-            select(RefreshToken).where(
-                RefreshToken.family_id == family_id,
-                RefreshToken.revoked_at.is_(None),
-            )
-        )
-    ).scalars().all()
-    for row in rows:
-        row.revoked_at = revoked_at
-    await db.flush()
+    await RefreshTokenRepository(db).revoke_family(family_id, revoked_at)
 
 
 async def refresh_session(
@@ -342,20 +321,12 @@ async def change_password(
     superset of the spec ("revokes that user's other sessions"). The caller's
     access token stays valid until it expires (stateless JWT).
     """
-    user = await db.get(User, principal.user_id)
+    user = await UserRepository(db).get_in_clinic(
+        principal.clinic_id, principal.user_id
+    )
     if user is None or not verify_password(current_password, user.password_hash):
         raise InvalidCredentials("current password does not match")
 
     user.password_hash = hash_password(new_password)
-    revoked_at = now()
-    rows = (
-        await db.execute(
-            select(RefreshToken).where(
-                RefreshToken.user_id == user.id,
-                RefreshToken.revoked_at.is_(None),
-            )
-        )
-    ).scalars().all()
-    for row in rows:
-        row.revoked_at = revoked_at
+    await RefreshTokenRepository(db).revoke_all_for_user(user.id, now())
     await db.commit()

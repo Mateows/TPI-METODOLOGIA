@@ -88,9 +88,10 @@ C-01 (Foundation Setup)
   - `knowledge-base/08_arquitectura_propuesta.md` §2, §3
 
 ### [C-02] `core-models-tenants`
-- **Estado**: `[x]` implementado y verificado (2026-11-02; 22/24 tareas, `openspec validate --strict` verde y 134 tests en verde); archivo pendiente — 6.3 y 7.1 requieren PostgreSQL de Docker Compose
+- **Estado**: `[x]` completado y archivado (2026-11-04; 30/30 tareas completadas en secciones 1–8, incluyendo 6.3 bootstrap idempotente en `tpi_dev`, 7.1/8.4 suite de 162 tests en verde en SQLite y PostgreSQL de Docker Compose sin escribir en `tpi_dev`, D13 capa `app/repositories/` con guarda AST en `test_architecture.py`, specs sincronizadas en `openspec/specs/{identity-access,tenant-isolation}` y archivado en `openspec/changes/archive/2026-11-04-core-models-tenants/`)
 - **Scope**:
-  - Modelos SQLAlchemy para `Clinic` y `User` con segregación multi-tenant por `clinic_id`.
+  - Modelos SQLAlchemy para `Clinic`, `User` y `RefreshToken` con segregación multi-tenant por `clinic_id`.
+  - Capa `app/repositories/` (`TenantScopedRepository`, `UserRepository`, `RefreshTokenRepository`, `ClinicRepository`) que encapsula toda consulta SQLAlchemy (D13).
   - Sistema de autenticación JWT (Access Token + Refresh Token) y encriptación Bcrypt.
   - Middleware de contexto multi-tenant y verificación de roles RBAC (admin, receptionist, dentist).
 - **Dependencias**: `C-01`
