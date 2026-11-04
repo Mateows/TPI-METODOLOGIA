@@ -8,6 +8,14 @@ import sys
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+<<<<<<< Updated upstream
+=======
+HEAD_REVISION = "0003_boxes"
+BASE_REVISION = "0001_init"
+CORE_REVISION = "0002_core_models_tenants"
+CORE_TABLES = {"clinics", "users", "refresh_tokens"}
+BOXES_TABLES = {"boxes"}
+>>>>>>> Stashed changes
 
 
 def _alembic(*args: str, db_path: Path) -> subprocess.CompletedProcess[str]:
@@ -38,6 +46,33 @@ def test_env_py_is_async_and_wired_to_base_metadata():
     assert "create_engine(" not in body  # no sync second path (design decision)
 
 
+<<<<<<< Updated upstream
+=======
+def test_upgrade_head_creates_core_tables(tmp_path):
+    """WHEN upgrading an empty DB THEN clinics/users/refresh_tokens exist."""
+    db_path = tmp_path / "core.db"
+    upgrade = _alembic("upgrade", "head", db_path=db_path)
+    assert upgrade.returncode == 0, upgrade.stderr
+    assert CORE_TABLES <= _tables(db_path)
+
+
+def test_upgrade_head_creates_boxes_and_downgrade_to_core_drops_them(tmp_path):
+    """WHEN upgrading an empty DB THEN boxes exists; downgrading 0002 removes it."""
+    db_path = tmp_path / "boxes.db"
+    upgrade = _alembic("upgrade", "head", db_path=db_path)
+    assert upgrade.returncode == 0, upgrade.stderr
+    assert BOXES_TABLES <= _tables(db_path)
+
+    downgrade = _alembic("downgrade", CORE_REVISION, db_path=db_path)
+    assert downgrade.returncode == 0, downgrade.stderr
+    assert not (BOXES_TABLES & _tables(db_path))
+    assert CORE_TABLES <= _tables(db_path)
+
+    assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
+    assert BOXES_TABLES <= _tables(db_path)
+
+
+>>>>>>> Stashed changes
 def test_migration_chain_is_ordered_and_repeatable(tmp_path):
     """upgrade head → downgrade -1 → upgrade head leaves zero pending revisions."""
     db_path = tmp_path / "migra.db"
