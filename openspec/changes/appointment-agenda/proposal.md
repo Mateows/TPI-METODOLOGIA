@@ -9,10 +9,12 @@ los endpoints y reduce el riesgo de inconsistencias en los turnos.
 
 ## What Changes
 
-- Agregar modelos para boxes y turnos, vinculados estrictamente a `clinic_id`.
+- Agregar modelos para boxes y turnos, vinculados estrictamente a `clinic_id`
+  derivado del contexto autenticado y nunca del payload.
 - Definir la creación, consulta y cambio de estado de turnos mediante servicios y
   endpoints FastAPI.
-- Rechazar rangos inválidos y solapamientos por profesional o box.
+- Rechazar rangos inválidos y solapamientos por profesional (`dentist_id`) o
+  box (`box_id`).
 - Persistir fechas en UTC y mantener errores de negocio explícitos.
 - Mantener fuera de alcance la implementación de WhatsApp, portal público,
   recordatorios, pagos y facturación.

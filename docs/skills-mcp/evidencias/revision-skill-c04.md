@@ -265,32 +265,36 @@ las dos primeras importantes.
 
 ## Correcciones aplicadas o pendientes
 
-**Correcciones aplicadas:** ninguna. La skill es de solo revisión y la solicitud fue
-explícitamente no modificar `openspec/changes/appointment-agenda/`, las specs ni
-`knowledge-base/`.
+Revisión aplicada el **2026-11-04** sobre `openspec/changes/appointment-agenda/`.
+No se implementó código, no se marcaron tareas y C-04 sigue `[ ]` en `CHANGES.md`.
 
-**Pendientes — requieren edición de artefactos (fuera del alcance de esta ejecución):**
+| # | Observación (severidad) | Archivo y sección | Qué se cambió |
+|---|---|---|---|
+| 1 | Origen del `clinic_id` del turno (**crítica**) | `spec.md` → nuevo requisito "Agenda clinic scope is server-derived"; "Appointment creation"; `design.md` Decisión 3; `tasks.md` 2.1 y 3.1; `proposal.md` "What Changes" | El `clinic_id` persiste solo del contexto autenticado (token + recarga desde DB, según `tenant-isolation`); el payload no acepta `clinic_id` y un campo extra devuelve `422 validation_error`; escenarios de rechazo y de persistencia con el tenant del contexto. Tareas alineadas. |
+| 2 | Cobertura incompleta de solapamientos (**importante**) | `spec.md` → "Overlap prevention"; `tasks.md` 2.3 | Seis escenarios: solapamiento parcial por `dentist_id`, por `box_id`, cita contenida, coincidencia exacta, consecutivas permitidas (`end == start`) y turno `cancelled` que libera el intervalo. La tarea 2.3 los enumera como criterio de verificación. |
+| 3 | Datetimes con offset o naive (**importante**) | `spec.md` → "Appointment creation" (escenarios "Naive datetime is rejected" y "Offset datetime is normalized to UTC"); `design.md` Decisión 5 y Risks; `tasks.md` 2.2 | La regla pasa a la spec como requisito verificable: zona obligatoria, normalización a UTC en el borde, rechazo `422` del naive. `design.md` deja de ser la única fuente. |
+| 4 | Falta matriz de transiciones (**importante**) | `spec.md` → requisitos "Appointment states" y "Appointment transition matrix"; `tasks.md` 2.5; `design.md` §Open Questions (2) | Matriz declarada solo con las transiciones que respalda la KB (`scheduled→confirmed`, `scheduled→cancelled`, `confirmed→attended`, `confirmed→cancelled`), escenario de transición no declarada rechazada conservando el estado previo. El origen de `no_show` queda como decisión pendiente, no inferida. |
+| 5 | Spec sin consulta/listado de turnos (**importante**) | `spec.md` → nuevo requisito "Appointment read isolation"; `tasks.md` 3.1 | Listado filtrado por clínica y rango de fechas sobre `start_time`, y lectura cross-clinic con el mismo `404` que un ID inexistente. Cierra la inconsistencia proposal ↔ spec ↔ tasks. |
+| 6 | Mecanismo de integridad concurrente sin definir (**importante**) | `design.md` Decisión 2, §Open Questions (1) y Risks; `tasks.md` 1.2 y 2.4; `spec.md` "Overlap prevention" | Dejó de presentarse como decisión tomada: la Decisión 2 remite a la pregunta abierta con las dos opciones (chequeo en servicio con bloqueo, portable; `EXCLUDE USING gist` + `btree_gist`, solo PostgreSQL con guarda por dialecto) y su consecuencia sobre la suite SQLite/PostgreSQL. Tareas con criterio explícito (`409` a la perdedora) condicionado a esa decisión. |
+| 7 | Terminología "professional" vs `dentist_id` (**menor**) | `spec.md` (todos los requisitos), `tasks.md` 1.1 y 2.3, `proposal.md` "What Changes" | Se unificó en `dentist_id` (y `box_id`) en la spec y en las tareas; el escenario pasó a llamarse "Dentist overlap is rejected". |
+| 8 | Ciclo de vida del box no especificado (**menor**) | `spec.md` → nuevo requisito "Box creation"; `design.md` §Open Questions (3); `tasks.md` 2.1 | Se agregó el alta de box con nombre no vacío y `clinic_id` del contexto. La restricción de agendar sobre un box en `maintenance` queda explícitamente como decisión pendiente; C-04 no la inventa y la tarea 2.1 lo dice. |
+| 9 | Auditoría de cancelaciones (**menor**) | `design.md` §Open Questions (4); `tasks.md` 2.5 | Se documentó el límite: C-04 no crea `AuditLog` mientras no se decida si RN-04 pertenece a C-04 o a C-06. No se resolvió por inferencia. |
+| 10 | Secuenciación frente a C-02 (**menor**) | `design.md` Risks; `tasks.md` "Workflow follow-up" y 3.3 | C-02 figura como archivada y disponible (2026-11-02); se exige que las pruebas de aislamiento corran contra el contexto real de C-02, no contra un stub, antes de archivar. |
+| 11 | 403/404 divergente con C-02 (transversal) | `spec.md` → "Box isolation", "Appointment states", "Appointment read isolation" | Se reemplazó "not-found **or** authorization error" por `404 not_found` único, con la misma forma que un ID inexistente, alineado con `tenant-isolation` §Cross-clinic disclosure prevention. |
+| 12 | Falta `## UI Mockups` en `design.md` (menor) | `design.md` → nueva sección "## UI Mockups" | `Decision: no (no UI)` con fecha 2026-11-04 y justificación (C-04 backend-only, sin `design-system/` registrado). No se inventó política de mockups. |
 
-1. Crítica: origen y no-suplantación del `clinic_id` en la creación de turnos, con
-   escenarios.
-2. Importantes: escenarios faltantes de solapamiento (box, contención, coincidencia
-   exacta, cancelados); requisito de datetimes con offset y naive; matriz de transiciones
-   de estado; requisito de consulta/listado de turnos; mecanismo concreto de integridad
-   concurrente.
-3. Menores: alineación de `CHANGES.md` (cinco estados); ciclo de vida del box;
-   terminología `dentist_id`; límite de auditoría en cancelaciones; criterio de pruebas
-   frente a C-02 pendiente.
+**Pendientes de decisión del usuario** (registradas en `design.md` §Open Questions, sin resolver):
 
-**Requieren decisión del usuario (no se pueden resolver por inferencia):**
+1. Mecanismo de RN-01 portable entre SQLite y PostgreSQL (servicio con bloqueo vs. `EXCLUDE` de PostgreSQL con guarda por dialecto).
+2. Origen de `no_show` y cualquier transición fuera de la matriz declarada.
+3. Si el alta de turno debe rechazar boxes en `maintenance`.
+4. Titularidad de la auditoría de cancelaciones de RN-04 (C-04 vs. C-06).
+5. Si el listado de turnos incluye `cancelled` por defecto.
 
-- Transiciones de estado soportadas más allá de las que documenta
-  `knowledge-base/07_flujos_principales.md` §Flujo 1 (en particular el uso de
-  `no_show` y la reapertura de turnos cancelados).
-- Si se puede agendar sobre un box en `maintenance` (la KB define el estado pero no la
-  restricción).
-- Mecanismo de exclusión concurrente preferido (restricción de exclusión PostgreSQL vs.
-  otros), por su impacto en la migración.
-- Titularidad de la auditoría de cancelaciones: C-04 o C-06.
+**No aplicado por límite explícito de la tarea:** el bullet de "Scope" de C-04 en
+`CHANGES.md` sigue enumerando cuatro estados y omitiendo `no_show`. El alcance de esta
+tarea solo permitía ajustar la línea de "Hallazgos a resolver antes de implementar";
+la spec es la fuente normativa del enum de cinco estados.
 
 **Limitaciones de esta revisión:**
 
@@ -298,10 +302,9 @@ explícitamente no modificar `openspec/changes/appointment-agenda/`, las specs n
   lo exige; si la épica correspondiente a agenda impusiera requisitos adicionales, esta
   revisión no los contrastó. La ruta de lectura de `knowledge-base/README.md` para
   "implementar turnos/agenda" (04 + 05 + 07) quedó cubierta en su totalidad.
-- `design.md` no contiene la sección `## UI Mockups` con `Decision: no (no UI)` que la
-  política global del harness pide para trabajo no visual. No se agregó porque la
-  solicitud prohíbe modificar archivos del change; se reporta como pendiente de
-  documentación.
+- `design.md` no contenía la sección `## UI Mockups` con `Decision: no (no UI)` que la
+  política global del harness pide para trabajo no visual. Se agregó el 2026-11-04
+  (ver tabla de correcciones, fila 12).
 - No se verificó la existencia de código de implementación para C-04 (el change está en
   etapa de propuesta y las tareas están sin marcar), por lo que todas las observaciones
   son de especificación y no de implementación.

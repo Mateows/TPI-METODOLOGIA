@@ -135,9 +135,13 @@ C-01 (Foundation Setup)
   (proposal, `specs/appointment-agenda/spec.md`, design, tasks).
 - **Revisión con skill propia**: `docs/skills-mcp/evidencias/revision-skill-c04.md`
   (11 observaciones: 1 crítica, 5 importantes, 5 menores).
-- **Hallazgos a resolver antes de implementar**: origen del `clinic_id` persistido;
-  escenarios de solapamiento faltantes (box, contención, coincidencia exacta, canceladas);
-  datetimes con offset/*naive* fuera de la spec.
+- **Hallazgos de la revisión — estado**: aplicados en los artefactos el 2026-11-04
+  (origen server-side del `clinic_id` con rechazo de payload, escenarios completos de
+  solapamiento, datetimes con zona y rechazo de *naive*, matriz de transiciones,
+  lectura/aislamiento y `404` único, terminología `dentist_id`). Quedan decisiones
+  abiertas del usuario en `design.md` §Open Questions: mecanismo RN-01 portable
+  SQLite/PostgreSQL, origen de `no_show`, boxes en `maintenance`, titularidad de la
+  auditoría RN-04 y filtro de estado por defecto del listado.
 
 ### [C-05] `odontogram-clinical-records`
 - **Estado**: `[ ]` pendiente
