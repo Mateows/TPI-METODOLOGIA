@@ -417,6 +417,137 @@ Notas de alcance:
 - No existe ninguna ruta HTTP de alta de clínica: el único camino es el comando
   de operador `python -m app.cli.bootstrap_clinic` (design D8).
 
+## Bootstrap de clínica (operador)
+
+No existe una ruta HTTP para crear clínicas (design D8). El primer tenant de una
+instalación se provisiona con el comando de operador
+`python -m app.cli.bootstrap_clinic`, que crea la clínica y su primer usuario
+`admin`. El comando es **idempotente** por `tax_id` (clínica) y `email`
+(usuario): correrlo dos veces deja una sola clínica y un solo admin.
+
+### Prerrequisitos
+
+Desde la raíz del repositorio, con PostgreSQL arriba:
+
+```bash
+docker compose up -d db
+```
+
+La configuración se toma de las variables de entorno de
+[`.env.example`](../../.env.example):
+
+- `DATABASE_URL`: base de **desarrollo**
+  (`postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev` por defecto en Compose).
+- `TEST_DATABASE_URL`: requerida por `Settings` aunque el bootstrap no la use;
+  usar la de test de Compose.
+- `SECRET_KEY`: obligatoria para que arranque cualquier proceso que importe
+  `app.core.config` (incluido Alembic y el CLI).
+- `BOOTSTRAP_ADMIN_PASSWORD` (opcional): contraseña inicial del admin. Si falta o
+  está vacía, el comando la pide por **prompt oculto**.
+
+En PowerShell (valores ficticios de desarrollo; no usar en producción):
+
+```powershell
+$env:DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev"
+$env:TEST_DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test"
+$env:SECRET_KEY="dev-only-change-me"
+```
+
+### 1. Aplicar migraciones a la base de desarrollo
+
+```powershell
+cd backend
+& .\.venv\Scripts\python.exe -m alembic upgrade head
+```
+
+Salida real contra `tpi_dev` (la base venía en `0001_init`):
+
+```text
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 0001_init -> 0002_core_models_tenants, clinics users refresh tokens
+```
+
+Verificación:
+
+```powershell
+& .\.venv\Scripts\python.exe -m alembic current
+```
+
+```text
+0002_core_models_tenants (head)
+```
+
+### 2. Crear la clínica y su admin
+
+La contraseña **nunca** se pasa como argumento (argv queda en el historial y en
+la tabla de procesos). Se toma de `BOOTSTRAP_ADMIN_PASSWORD` o del prompt oculto:
+
+```powershell
+$env:BOOTSTRAP_ADMIN_PASSWORD="Dev-Bootstrap-123"
+& .\.venv\Scripts\python.exe -m app.cli.bootstrap_clinic `
+  --name "Clinica Demo Bootstrap" `
+  --tax-id "30-12345678-9" `
+  --email "admin@demo-bootstrap.com" `
+  --full-name "Ada Administradora"
+```
+
+Salida real de la primera corrida (sin contraseña ni hash):
+
+```text
+clinic created: 'Clinica Demo Bootstrap' (tax_id=30-12345678-9, slug=clinica-demo-bootstrap, id=ae0696a9-af84-422e-9925-def2be080101)
+admin user created: admin@demo-bootstrap.com (id=4cd11d5c-b0a3-4028-95e2-d4523d1a8e27, role=admin)
+```
+
+Si se omite `--slug`, se deriva del nombre (`clinica-demo-bootstrap`); ante una
+colisión se agrega `-2`, `-3`, etc.
+
+### 3. Verificar la idempotencia
+
+Repetir exactamente el mismo comando:
+
+```text
+clinic already exists: 'Clinica Demo Bootstrap' (tax_id=30-12345678-9, id=ae0696a9-af84-422e-9925-def2be080101)
+admin user already exists: admin@demo-bootstrap.com (id=4cd11d5c-b0a3-4028-95e2-d4523d1a8e27, role=admin)
+```
+
+Estado resultante en `tpi_dev` (consulta real):
+
+```text
+clinics=1
+users=1
+refresh_tokens=0
+```
+
+### 4. Usar el prompt oculto (sin `BOOTSTRAP_ADMIN_PASSWORD`)
+
+Quitar la variable y volver a correr el comando contra una clínica/email nuevos:
+
+```powershell
+Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD
+& .\.venv\Scripts\python.exe -m app.cli.bootstrap_clinic `
+  --name "Otra Clinica" --tax-id "30-00000000-0" `
+  --email "otra@example.com" --full-name "Otro Admin"
+```
+
+El comando muestra `Initial admin password:` y lee la clave con
+`getpass.getpass`, que no la ecoa ni la deja en argv. Este camino está cubierto
+por el test `test_password_comes_from_the_hidden_prompt_when_env_is_absent`
+(`backend/tests/test_cli_bootstrap.py`).
+
+### Reglas y errores del comando
+
+- La contraseña debe tener entre 8 y 72 bytes (límite de bcrypt). Un valor
+  inválido imprime sólo la regla violada y termina con código `2`; no persiste
+  nada y nunca repite la clave.
+- Un `--password` (u otra opción desconocida) es rechazado por `argparse` con
+  código `2`: la clave no se acepta por línea de comandos.
+- Si el `email` ya existe en **otra** clínica, el comando se niega (el email es
+  único global, design D6) y termina con código `1`.
+- La salida sólo incluye identificadores y estado; nunca la contraseña ni el
+  hash almacenado.
+- No hay endpoint HTTP de alta de clínicas: el comando es el único camino.
+
 ## Notas operativas
 
 - En producción el tráfico debe ir por TLS; el refresh token viaja en el cuerpo

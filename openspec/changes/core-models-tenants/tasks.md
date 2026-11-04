@@ -97,13 +97,13 @@
   usuario (admin activo con rol `admin`).
 - [x] 6.2 Verificar que no existe ruta pública de alta de clínica y que el
   bootstrap no imprime la contraseña ni el hash en stdout.
-- [ ] 6.3 Documentar el procedimiento de bootstrap en `backend/docs/api-auth.md`
+- [x] 6.3 Documentar el procedimiento de bootstrap en `backend/docs/api-auth.md`
   y verificar que el comando documentado funciona contra la base de desarrollo
   provista por `docker-compose.yml`.
 
 ## 7. Integración y cierre
 
-- [ ] 7.1 Ejecutar la suite completa con SQLite y con PostgreSQL
+- [x] 7.1 Ejecutar la suite completa con SQLite y con PostgreSQL
   (`DATABASE_URL`/`TEST_DATABASE_URL` de Compose) y verificar que todos los
   tests pasan sin escribir en la base de desarrollo.
 - [x] 7.2 Ejecutar `openspec validate core-models-tenants --strict` y revisar
