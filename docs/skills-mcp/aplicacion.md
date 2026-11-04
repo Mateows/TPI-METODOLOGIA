@@ -1,7 +1,11 @@
 # Informe de aplicación — Skill propia y MCP integrados a la fundación
 
-- **Autor:** Mateo Liendo (trabajo individual) · **Fecha:** 30/10/2026
-- **Change asistido:** C-04 `appointment-agenda` — **preparado, no implementado, verificado ni archivado**
+- **Autor:** Mateo Liendo (trabajo individual) · **Fechas:** 30/10/2026 (skill + primera pasada del MCP) · 04/11/2026 (MCP sobre C-02)
+- **Changes asistidos:**
+  - **C-04** `appointment-agenda` — **preparado, no implementado, verificado ni archivado**. La skill se
+    aplicó sobre sus artefactos; aporta evidencia de uso, no cuenta para el mínimo.
+  - **C-02** `core-models-tenants` — **implementado, verificado y archivado**. El MCP se aplicó sobre
+    decisiones de este change; sí cuenta para el mínimo.
 
 
 ## 1. Resultados
@@ -38,6 +42,25 @@ transacciones); la escasez de implementaciones públicas del dominio justifica q
 su propio esquema desde la KB.
 **Evidencia:** [`evidencias/mcp-github-c04.md`](evidencias/mcp-github-c04.md) · **Configuración:**
 [`mcp-github.md`](mcp-github.md)
+
+#### 1.2.1 Segunda pasada del MCP — sobre C-02 (change archivado)
+
+La primera pasada quedó atada a C-04, que no cuenta para el mínimo. Para que la evidencia de
+MCP se apoye en el alcance efectivamente entregado, se repitió el procedimiento sobre dos
+decisiones de C-02:
+
+| Consulta | Resultado | Decisión que respalda |
+|---|---|---|
+| `"token family" revoke reuse language:python` | 1.282 coincidencias (`django-oauth-toolkit`, `litestar-fullstack`) | `RefreshToken` con `family_id` y revocación de la familia ante reuso |
+| `"tenant_id" where filter repository language:python` | 12.016 coincidencias, con el filtro dentro de módulos `repository` | Capa `app/repositories/` (**D13**) y guarda AST |
+
+Lo que se **rechazó**: no se adoptó código externo (los resultados dependen de Django/Litestar,
+con supuestos de sesión distintos) ni ningún repositorio de referencia (ninguno cubre el
+dominio odontológico ni la Ley 25.326); y se descartó el estilo de filtrar por tenant en
+handlers o queries sueltas, que es lo que D13 prohíbe.
+
+**Evidencia:** [`evidencias/mcp-github-c02.md`](evidencias/mcp-github-c02.md)
+
 
 ### 1.3 Integración a la fundación
 
