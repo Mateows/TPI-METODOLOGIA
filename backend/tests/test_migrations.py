@@ -1,4 +1,4 @@
-"""Task 2.2 — Alembic chain reaches 0002 and is repeatable both ways."""
+"""Task 2.2 / C-03 1.2 — Alembic chain reaches 0003 and is repeatable both ways."""
 
 from __future__ import annotations
 
@@ -9,13 +9,18 @@ import sys
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-HEAD_REVISION = "0002_core_models_tenants"
+HEAD_REVISION = "0003_patient_management"
+PREVIOUS_REVISION = "0002_core_models_tenants"
 BASE_REVISION = "0001_init"
-CORE_TABLES = {"clinics", "users", "refresh_tokens"}
+CORE_TABLES = {"clinics", "users", "refresh_tokens", "patients"}
 
 
 def _alembic(*args: str, db_path: Path) -> subprocess.CompletedProcess[str]:
-    env = {k: v for k, v in os.environ.items() if k in ("PATH", "SYSTEMROOT", "SYSTEMDRIVE", "TEMP", "TMP")}
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if k in ("PATH", "SYSTEMROOT", "SYSTEMDRIVE", "TEMP", "TMP")
+    }
     env.update(
         DATABASE_URL=f"sqlite+aiosqlite:///{db_path}",
         TEST_DATABASE_URL=f"sqlite+aiosqlite:///{db_path}",
@@ -52,7 +57,7 @@ def test_env_py_is_async_and_wired_to_base_metadata():
 
 
 def test_upgrade_head_creates_core_tables(tmp_path):
-    """WHEN upgrading an empty DB THEN clinics/users/refresh_tokens exist."""
+    """WHEN upgrading an empty DB THEN clinics/users/refresh_tokens/patients exist."""
     db_path = tmp_path / "core.db"
     upgrade = _alembic("upgrade", "head", db_path=db_path)
     assert upgrade.returncode == 0, upgrade.stderr
@@ -60,13 +65,21 @@ def test_upgrade_head_creates_core_tables(tmp_path):
 
 
 def test_migration_chain_is_ordered_and_repeatable(tmp_path):
-    """upgrade head → downgrade 0001_init → upgrade head leaves zero pending."""
+    """upgrade head → downgrade 0002 → upgrade head → downgrade 0001 → upgrade head."""
     db_path = tmp_path / "migra.db"
     assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
     assert CORE_TABLES <= _tables(db_path)
 
-    downgrade = _alembic("downgrade", BASE_REVISION, db_path=db_path)
-    assert downgrade.returncode == 0, downgrade.stderr
+    downgrade_0002 = _alembic("downgrade", PREVIOUS_REVISION, db_path=db_path)
+    assert downgrade_0002.returncode == 0, downgrade_0002.stderr
+    assert "patients" not in _tables(db_path)
+    assert {"clinics", "users", "refresh_tokens"} <= _tables(db_path)
+
+    assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
+    assert CORE_TABLES <= _tables(db_path)
+
+    downgrade_0001 = _alembic("downgrade", BASE_REVISION, db_path=db_path)
+    assert downgrade_0001.returncode == 0, downgrade_0001.stderr
     assert not (CORE_TABLES & _tables(db_path))
 
     assert _alembic("upgrade", "head", db_path=db_path).returncode == 0

@@ -270,3 +270,156 @@ async def test_clinic_slug_exists(seed_tenant, test_session):
     assert tenant.clinic.slug == "slug-ocupado"
     assert await repo.slug_exists("slug-ocupado") is True
     assert await repo.slug_exists("slug-libre") is False
+
+
+# ------------------------------------------------------------------ patients
+
+
+def _patient_scope(tenant):
+    from app.services.principal import Principal
+
+    return Principal(
+        user_id=tenant.user.id,
+        clinic_id=tenant.clinic.id,
+        role=tenant.user.role,
+        user=tenant.user,
+        clinic=tenant.clinic,
+    )
+
+
+def _patient(
+    clinic_id: uuid.UUID,
+    *,
+    first_name: str = "Maria",
+    last_name: str = "Suarez",
+    dni: str = "30111222",
+    is_active: bool = True,
+):
+    from app.models.patient import Patient
+
+    return Patient(
+        clinic_id=clinic_id,
+        first_name=first_name,
+        last_name=last_name,
+        dni=dni,
+        is_active=is_active,
+    )
+
+
+async def test_patient_repo_get_and_get_by_dni_never_return_foreign_clinic_rows(
+    seed_tenant, test_session
+):
+    """Task 2.2: get and get_by_dni are strictly scoped to principal.clinic_id."""
+    from app.repositories import PatientRepository
+
+    own = await seed_tenant()
+    foreign = await seed_tenant()
+    own_repo = PatientRepository(test_session, _patient_scope(own))
+    foreign_repo = PatientRepository(test_session, _patient_scope(foreign))
+
+    own_patient = await own_repo.add(
+        _patient(own.clinic.id, first_name="Ana", last_name="Paz", dni="31000111")
+    )
+    foreign_patient = await foreign_repo.add(
+        _patient(
+            foreign.clinic.id, first_name="Carlos", last_name="Rios", dni="32000222"
+        )
+    )
+
+    assert (await own_repo.get(own_patient.id)) == own_patient
+    assert (await own_repo.get(foreign_patient.id)) is None
+    assert (await own_repo.get(uuid.uuid4())) is None
+
+    assert (await own_repo.get_by_dni("31000111")) == own_patient
+    assert (await own_repo.get_by_dni("32000222")) is None
+
+
+async def test_patient_repo_dni_exists_and_savepoint_duplicate_handling(
+    seed_tenant, test_session
+):
+    """Task 2.2 (triangulation): duplicate (clinic_id, dni) raises IntegrityError inside savepoint; same DNI in another clinic succeeds."""
+    from app.repositories import PatientRepository
+
+    own = await seed_tenant()
+    foreign = await seed_tenant()
+    own_repo = PatientRepository(test_session, _patient_scope(own))
+    foreign_repo = PatientRepository(test_session, _patient_scope(foreign))
+
+    created = await own_repo.add(_patient(own.clinic.id, dni="40123456"))
+    assert await own_repo.dni_exists("40123456") is True
+    assert await own_repo.dni_exists("40123456", exclude_id=created.id) is False
+    assert await foreign_repo.dni_exists("40123456") is False
+
+    # Same DNI in another clinic is allowed
+    foreign_same_dni = await foreign_repo.add(
+        _patient(foreign.clinic.id, dni="40123456")
+    )
+    assert foreign_same_dni.id is not None
+
+    # Duplicate DNI in the same clinic raises IntegrityError without poisoning session
+    with pytest.raises(IntegrityError):
+        await own_repo.add(_patient(own.clinic.id, dni="40123456"))
+
+    # Session remains usable after savepoint rollback
+    after_dup = await own_repo.add(_patient(own.clinic.id, dni="40999999"))
+    assert after_dup.id is not None
+
+    # Updating another patient in the same clinic to a taken DNI also rolls back savepoint
+    original_dni = after_dup.dni
+    after_dup.dni = "40123456"
+    with pytest.raises(IntegrityError):
+        await own_repo.save(after_dup)
+    after_dup.dni = original_dni
+
+
+async def test_patient_repo_search_filters_by_query_active_status_and_pagination(
+    seed_tenant, test_session
+):
+    """Task 2.2: search filters by clinic_id, active status, q (dni/first_name/last_name), and supports limit/offset."""
+    from app.repositories import PatientRepository
+
+    own = await seed_tenant()
+    foreign = await seed_tenant()
+    own_repo = PatientRepository(test_session, _patient_scope(own))
+    foreign_repo = PatientRepository(test_session, _patient_scope(foreign))
+
+    p1 = await own_repo.add(
+        _patient(own.clinic.id, first_name="Lucia", last_name="Alvarez", dni="30100200")
+    )
+    p2 = await own_repo.add(
+        _patient(own.clinic.id, first_name="Martin", last_name="Bianchi", dni="35999000")
+    )
+    p_inactive = await own_repo.add(
+        _patient(
+            own.clinic.id,
+            first_name="Lucia",
+            last_name="Zorro",
+            dni="28000111",
+            is_active=False,
+        )
+    )
+    await foreign_repo.add(
+        _patient(
+            foreign.clinic.id,
+            first_name="Lucia",
+            last_name="Alvarez",
+            dni="30100200",
+        )
+    )
+
+    # Default excludes inactive and foreign patients, ordered by last_name, first_name
+    active_rows = await own_repo.search()
+    assert [r.id for r in active_rows] == [p1.id, p2.id]
+
+    # include_inactive=True includes p_inactive
+    all_rows = await own_repo.search(include_inactive=True)
+    assert [r.id for r in all_rows] == [p1.id, p2.id, p_inactive.id]
+
+    # Search by first_name, last_name, and dni (case-insensitive)
+    assert [r.id for r in await own_repo.search("lucia")] == [p1.id]
+    assert [r.id for r in await own_repo.search("BIANCHI")] == [p2.id]
+    assert [r.id for r in await own_repo.search("35999")] == [p2.id]
+
+    # Pagination
+    paged = await own_repo.search(include_inactive=True, limit=1, offset=1)
+    assert [r.id for r in paged] == [p2.id]

@@ -106,12 +106,12 @@ C-01 (Foundation Setup)
 ## FASE 2 — Gestión Clínica y Agenda
 
 ### [C-03] `patient-management`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-11-04; 10/10 tareas implementadas bajo Strict TDD Mode: modelo `Patient` y migración `0003_patient_management`, `PatientRepository` sobre `TenantScopedRepository`, schemas Pydantic V2 con `extra="forbid"`, servicio y router `/api/v1/patients`, documentación `backend/docs/api-patients.md` y 194 tests en verde en SQLite y PostgreSQL de Docker Compose sin escribir en `tpi_dev`)
 - **Scope**:
   - Modelo SQLAlchemy para `Patient` con campos personales y anamnesis médica en JSON.
   - Endpoints REST CRUD para pacientes (`POST /api/v1/patients`, `GET /api/v1/patients/{id}`, etc.) con filtro por `clinic_id`.
   - Tests unitarios y de aislamiento multi-tenant con pytest.
-- **Dependencias**: `C-02`
+- **Dependencias**: `C-02` ✓
 - **Governance**: MEDIO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Patient)
@@ -149,7 +149,7 @@ C-01 (Foundation Setup)
   - Modelos SQLAlchemy para `Odontogram` (nomenclatura ISO 3950 por cara dentaria) y `MedicalRecord` (Evoluciones).
   - Endpoints REST para registrar y consultar diagnósticos y tratamientos por pieza dental.
   - Vinculación automática entre evolución clínica y cuenta corriente del paciente.
-- **Dependencias**: `C-03`
+- **Dependencias**: `C-03` ✓ (satisfecha el 2026-11-04: modelo `Patient`, `PatientRepository` y `/api/v1/patients` disponibles)
 - **Governance**: ALTO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Odontogram, MedicalRecord)

@@ -51,17 +51,24 @@ async def test_get_db_yields_usable_session_then_closes(sqlite_url):
 
 
 def test_base_metadata_registers_core_models():
-    """Task 2.3: importing app.models registers clinics/users/refresh_tokens."""
+    """Task 2.3 / C-03 1.1: importing app.models registers clinics/users/refresh_tokens/patients."""
     import app.models as models
-    from app.models import Clinic, RefreshToken, User
+    from app.models import Clinic, Patient, RefreshToken, User
 
     metadata = models.Clinic.metadata
     assert hasattr(metadata, "tables")
-    assert {"clinics", "users", "refresh_tokens"} <= set(metadata.tables)
+    assert {"clinics", "users", "refresh_tokens", "patients"} <= set(metadata.tables)
     assert metadata.naming_convention["pk"] == "pk_%(table_name)s"
     assert {
         Clinic.__tablename__,
         User.__tablename__,
         RefreshToken.__tablename__,
+        Patient.__tablename__,
     } <= set(metadata.tables)
-    assert set(models.__all__) == {"Clinic", "RefreshToken", "USER_ROLES", "User"}
+    assert set(models.__all__) == {
+        "Clinic",
+        "Patient",
+        "RefreshToken",
+        "USER_ROLES",
+        "User",
+    }

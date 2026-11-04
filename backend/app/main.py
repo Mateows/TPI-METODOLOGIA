@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from app.api.auth import router as auth_router
 from app.api.health import router as health_router
+from app.api.patients import router as patients_router
 from app.api.users import router as users_router
 from app.core.database import get_db
 from app.core.errors import register_exception_handlers
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
     application.include_router(health_router)
     application.include_router(auth_router)
     application.include_router(users_router)
+    application.include_router(patients_router)
     return application
 
 

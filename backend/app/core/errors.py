@@ -63,12 +63,28 @@ class TenantViolation(DomainError):
     default_detail = "resource not found"
 
 
+class PatientNotFound(DomainError):
+    """Patient does not exist in the active clinic (indistinguishable from TenantViolation, D6)."""
+
+    status_code = 404
+    code = "not_found"
+    default_detail = "resource not found"
+
+
 class DuplicateEmail(DomainError):
     """Email already belongs to a user (D6); the owning clinic is not revealed."""
 
     status_code = 409
     code = "duplicate_email"
     default_detail = "email already registered"
+
+
+class DuplicateDni(DomainError):
+    """A patient with the same DNI already exists in the active clinic (D6)."""
+
+    status_code = 409
+    code = "duplicate_dni"
+    default_detail = "a patient with that DNI already exists in this clinic"
 
 
 class LastAdminError(DomainError):

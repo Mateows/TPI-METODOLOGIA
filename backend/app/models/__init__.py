@@ -7,7 +7,8 @@ Importing this package registers every model on ``Base.metadata`` so Alembic
 from __future__ import annotations
 
 from app.models.clinic import Clinic
+from app.models.patient import Patient
 from app.models.refresh_token import RefreshToken
 from app.models.user import USER_ROLES, User
 
-__all__ = ["Clinic", "RefreshToken", "USER_ROLES", "User"]
+__all__ = ["Clinic", "Patient", "RefreshToken", "USER_ROLES", "User"]
