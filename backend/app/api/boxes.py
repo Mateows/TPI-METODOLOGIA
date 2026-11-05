@@ -9,7 +9,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_principal
+from app.api.deps import get_current_principal, require_roles
 from app.core.database import get_db
 from app.schemas.boxes import BoxCreateRequest, BoxResponse
 from app.services import boxes as boxes_service
@@ -18,15 +18,20 @@ from app.services.principal import Principal
 router = APIRouter(prefix="/api/v1/boxes", tags=["boxes"])
 
 Authenticated = Depends(get_current_principal)
+AdminOnly = Depends(require_roles("admin"))
 
 
 @router.post("", response_model=BoxResponse, status_code=201)
 async def create_box(
     payload: BoxCreateRequest,
-    principal: Principal = Authenticated,
+    principal: Principal = AdminOnly,
     db: AsyncSession = Depends(get_db),
 ) -> BoxResponse:
-    """Create a box assigned to the authenticated caller's clinic."""
+    """Create a box assigned to the authenticated admin's clinic.
+
+    Administrative operation restricted to clinic administrators (AdminOnly);
+    receptionists and dentists receive 403 Forbidden without database side effects.
+    """
     box = await boxes_service.create_box(db, principal, payload)
     await db.commit()
     return BoxResponse.model_validate(box)

@@ -106,7 +106,7 @@ C-01 (Foundation Setup)
 ## FASE 2 — Gestión Clínica y Agenda
 
 ### [C-03] `patient-management`
-- **Estado**: `[x]` completado (2026-11-04; 10/10 tareas implementadas bajo Strict TDD Mode: modelo `Patient` y migración `0003_patient_management`, `PatientRepository` sobre `TenantScopedRepository`, schemas Pydantic V2 con `extra="forbid"`, servicio y router `/api/v1/patients`, documentación `backend/docs/api-patients.md` y 194 tests en verde en SQLite y PostgreSQL de Docker Compose sin escribir en `tpi_dev`)
+- **Estado**: `[x]` completado y archivado (2026-11-04; 10/10 tareas implementadas bajo Strict TDD Mode: modelo `Patient` y migración `0003_patient_management`, `PatientRepository` sobre `TenantScopedRepository` con traducción de `IntegrityError` a `DuplicateDni` en el repositorio, `app/services/patients.py` desacoplado sin importación directa de `sqlalchemy`, schemas Pydantic V2 con `extra="forbid"`, router `/api/v1/patients`, documentación `backend/docs/api-patients.md`, spec sincronizada en `openspec/specs/patient-management/spec.md`, archivado en `openspec/changes/archive/2026-11-04-patient-management/` y 205 tests en verde en SQLite y PostgreSQL de Docker Compose sin escribir en `tpi_dev`)
 - **Scope**:
   - Modelo SQLAlchemy para `Patient` con campos personales y anamnesis médica en JSON.
   - Endpoints REST CRUD para pacientes (`POST /api/v1/patients`, `GET /api/v1/patients/{id}`, etc.) con filtro por `clinic_id`.

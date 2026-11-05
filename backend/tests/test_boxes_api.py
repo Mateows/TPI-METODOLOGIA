@@ -94,7 +94,7 @@ async def test_create_rejects_a_client_supplied_clinic_id(
 ):
     """Spec: a payload ``clinic_id`` is a 422, whether it matches the token or not."""
     admin = await seed_tenant(role="admin", email="admin-box-clinic@example.com")
-    other = await seed_tenant(role="admin", email="otra-clinica@example.com")
+    other = await seed_tenant(role="admin", email="otra-box-clinic@example.com")
     sent = str(admin.clinic.id if same_clinic else other.clinic.id)
     before_own = await _count_boxes(test_session, admin.clinic.id)
     before_other = await _count_boxes(test_session, other.clinic.id)
@@ -112,6 +112,37 @@ async def test_create_rejects_a_client_supplied_clinic_id(
     assert (
         await test_session.execute(select(Box).where(Box.name == "Box con clinica"))
     ).first() is None
+
+
+# --------------------------------------------------------------------------- #
+# Role authorization (task 2.1 — admin-only creation)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.parametrize("role", ["receptionist", "dentist"])
+async def test_non_admin_roles_get_403_on_box_creation(
+    client, seed_tenant, test_session, role
+):
+    """Non-admin roles cannot create boxes; answers 403 without side effects."""
+    actor = await seed_tenant(role=role, email=f"{role}.box@example.com")
+    before_boxes = await _count_boxes(test_session, actor.clinic.id)
+
+    response = await client.post(
+        BOXES,
+        json={"name": "Box Prohibido"},
+        headers=_auth(actor.token()),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["code"] == "forbidden"
+    assert await _count_boxes(test_session, actor.clinic.id) == before_boxes
+
+
+async def test_box_creation_requires_authentication(client):
+    """Anonymous callers cannot create boxes; answers 401."""
+    response = await client.post(BOXES, json={"name": "Box Anonimo"})
+    assert response.status_code == 401
+    assert response.json()["code"] == "authentication_failed"
 
 
 # --------------------------------------------------------------------------- #

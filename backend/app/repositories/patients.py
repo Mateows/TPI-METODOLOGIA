@@ -3,13 +3,42 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
+from contextlib import asynccontextmanager
 
 from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio.session import AsyncSessionTransaction
 
 from app.models.patient import Patient
 from app.repositories.base import ClinicScope, TenantScopedRepository
+
+
+@asynccontextmanager
+async def _isolated_savepoint(db: AsyncSession) -> AsyncIterator[AsyncSessionTransaction]:
+    """Open a savepoint without triggering SQLAlchemy's pre-snapshot flush.
+
+    By default, ``Session.begin_nested()`` flushes all pending dirty objects
+    before emitting ``SAVEPOINT``. When ``save()`` is called on an already-mutated
+    instance whose changes violate a constraint (e.g. duplicate DNI), that
+    pre-snapshot flush fails on the parent transaction instead of inside the
+    savepoint, deassociating the root transaction. Suppressing ``_flushing`` during
+    savepoint entry ensures ``SAVEPOINT`` is established first so the subsequent
+    flush runs safely within it.
+    """
+    sp_cm = db.begin_nested()
+    db.sync_session._flushing = True
+    try:
+        sp = await sp_cm.__aenter__()
+    finally:
+        db.sync_session._flushing = False
+    try:
+        yield sp
+    except BaseException as exc:
+        if not await sp_cm.__aexit__(type(exc), exc, exc.__traceback__):
+            raise
+    else:
+        await sp_cm.__aexit__(None, None, None)
 
 
 class PatientRepository(TenantScopedRepository[Patient]):
@@ -65,14 +94,14 @@ class PatientRepository(TenantScopedRepository[Patient]):
 
     async def add(self, patient: Patient) -> Patient:
         """Insert ``patient`` inside a savepoint and flush (D3)."""
-        async with self.db.begin_nested():
+        async with _isolated_savepoint(self.db):
             self.db.add(patient)
             await self.db.flush()
         return patient
 
     async def save(self, patient: Patient) -> Patient:
         """Flush updates to ``patient`` inside a savepoint (D3)."""
-        async with self.db.begin_nested():
+        async with _isolated_savepoint(self.db):
             self.db.add(patient)
             await self.db.flush()
         return patient

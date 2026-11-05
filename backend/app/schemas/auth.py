@@ -10,6 +10,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+SLUG_PATTERN = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+
 
 class LoginRequest(BaseModel):
     """Email is globally unique, so no clinic selector is needed (D6)."""
@@ -38,11 +40,18 @@ class RefreshRequest(BaseModel):
 
 
 class ClinicSummary(BaseModel):
+    """Public clinic summary returned in authentication payloads (D7).
+
+    The slug format is validated at the application level to comply with
+    public portal routing (`/portal/reserva/{clinic_slug}`) without requiring
+    database schema changes or migrations.
+    """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     name: str
-    slug: str
+    slug: str = Field(min_length=1, max_length=100, pattern=SLUG_PATTERN)
 
 
 class MeResponse(BaseModel):

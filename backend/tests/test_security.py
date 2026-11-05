@@ -101,7 +101,16 @@ def test_tampered_token_is_rejected():
     """WHEN any byte of the signed token changes THEN the signature fails."""
     token = create_access_token(subject="u", clinic_id="c", role="admin", now=_fixed_now)
     header, payload, signature = token.split(".")
-    tampered = f"{header}.{payload}.{signature[:-1]}{'A' if signature[-1] != 'A' else 'B'}"
+
+    # 1. Tampering with the payload invalidates the signature
+    tampered_payload = f"{header}.{'A' if payload[0] != 'A' else 'B'}{payload[1:]}.{signature}"
+    with pytest.raises(TokenError):
+        decode_access_token(tampered_payload, now=_fixed_now)
+
+    # 2. Tampering with the signature's leading byte (6 full significant bits, avoiding
+    # the 2 non-significant padding bits of the 43rd character in 256-bit base64url)
+    tampered_signature = f"{'A' if signature[0] != 'A' else 'B'}{signature[1:]}"
+    tampered = f"{header}.{payload}.{tampered_signature}"
 
     with pytest.raises(TokenError):
         decode_access_token(tampered, now=_fixed_now)

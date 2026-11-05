@@ -35,6 +35,8 @@ from app.repositories.users import UserRepository
 # bootstrap password must be refused before anything is persisted.
 MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_BYTES = 72
+MAX_SLUG_LENGTH = 100
+SLUG_REGEX = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -75,6 +77,23 @@ def _slugify(value: str) -> str:
     ascii_only = decomposed.encode("ascii", "ignore").decode("ascii")
     slug = re.sub(r"[^a-z0-9]+", "-", ascii_only.lower()).strip("-")
     return slug or "clinica"
+
+
+def _slug_problem(slug: str) -> str | None:
+    """Return a human reason when a custom clinic slug is unacceptable, else ``None``.
+
+    Application-level validation: slugs are reserved for the public booking portal
+    (C-09 / D7). They must be lowercase ASCII alphanumeric with hyphens, 1 to 100
+    chars, and without consecutive or leading/trailing hyphens. Keeping this
+    restriction in the application layer avoids unnecessary database schema migrations.
+    """
+    if not slug:
+        return "slug cannot be empty"
+    if len(slug) > MAX_SLUG_LENGTH:
+        return f"slug must be at most {MAX_SLUG_LENGTH} characters"
+    if not SLUG_REGEX.fullmatch(slug):
+        return "slug must contain only lowercase letters, digits, and single hyphens between words"
+    return None
 
 
 async def _unique_slug(db: AsyncSession, base: str) -> str:
@@ -121,6 +140,12 @@ async def _bootstrap(
     name = args.name.strip()
     full_name = args.full_name.strip()
 
+    if args.slug:
+        slug_problem = _slug_problem(args.slug.strip())
+        if slug_problem is not None:
+            print(f"error: {slug_problem}", file=sys.stderr)
+            return 2
+
     clinics = ClinicRepository(db)
     users = UserRepository(db)
     clinic = await clinics.get_by_tax_id(tax_id)
@@ -158,9 +183,8 @@ async def _bootstrap(
         return 2
 
     if clinic is None:
-        slug = await _unique_slug(
-            db, args.slug.strip() if args.slug else _slugify(name)
-        )
+        raw_slug = args.slug.strip() if args.slug else _slugify(name)
+        slug = await _unique_slug(db, raw_slug)
         clinic = Clinic(name=name, slug=slug, tax_id=tax_id, is_active=True)
         await clinics.add(clinic)
         print(f"clinic created: {name!r} (tax_id={tax_id}, slug={slug}, id={clinic.id})")
