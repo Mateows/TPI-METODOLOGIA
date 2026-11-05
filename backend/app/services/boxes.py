@@ -6,8 +6,11 @@ delegated to ``BoxRepository``. The service only flushes: the router commits.
 
 from __future__ import annotations
 
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.errors import BoxNotFound
 from app.models.box import Box
 from app.repositories.boxes import BoxRepository
 from app.schemas.boxes import BoxCreateRequest
@@ -24,6 +27,16 @@ async def create_box(
         status="active",
     )
     return await BoxRepository(db, principal).add(box)
+
+
+async def get_box(
+    db: AsyncSession, principal: Principal, box_id: uuid.UUID
+) -> Box:
+    """Retrieve a box by ID, strictly scoped to the caller's clinic (404 on foreign/absent)."""
+    box = await BoxRepository(db, principal).get(box_id)
+    if box is None:
+        raise BoxNotFound()
+    return box
 
 
 async def list_boxes(db: AsyncSession, principal: Principal) -> list[Box]:

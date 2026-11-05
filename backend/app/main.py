@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from app.api.appointments import router as appointments_router
 from app.api.auth import router as auth_router
 from app.api.boxes import router as boxes_router
 from app.api.health import router as health_router
@@ -24,6 +25,7 @@ def create_app() -> FastAPI:
     application.include_router(users_router)
     application.include_router(patients_router)
     application.include_router(boxes_router)
+    application.include_router(appointments_router)
     return application
 
 

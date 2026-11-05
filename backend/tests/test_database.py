@@ -53,7 +53,7 @@ async def test_get_db_yields_usable_session_then_closes(sqlite_url):
 def test_base_metadata_registers_core_models():
     """Task 2.3 / C-03 1.1: importing app.models registers clinics/users/refresh_tokens/patients."""
     import app.models as models
-    from app.models import Box, Clinic, Patient, RefreshToken, User
+    from app.models import Appointment, Box, Clinic, Patient, RefreshToken, User
 
     metadata = models.Clinic.metadata
     assert hasattr(metadata, "tables")
@@ -65,8 +65,11 @@ def test_base_metadata_registers_core_models():
         User.__tablename__,
         RefreshToken.__tablename__,
         Patient.__tablename__,
+        Appointment.__tablename__,
     } <= set(metadata.tables)
     assert set(models.__all__) == {
+        "APPOINTMENT_STATUSES",
+        "Appointment",
         "BOX_STATUSES",
         "Box",
         "Clinic",

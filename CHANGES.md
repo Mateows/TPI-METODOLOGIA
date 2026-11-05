@@ -118,30 +118,30 @@ C-01 (Foundation Setup)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-02
 
 ### [C-04] `appointment-agenda`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` implementado (2026-11-05; 12/12 tareas completadas bajo Strict TDD Mode: modelo `Appointment` y migración `0005_appointments`, `AppointmentRepository` sobre `TenantScopedRepository`, regla RN-01 de no solapamiento con doble garantía de concurrencia en `app/services/appointments.py`, matriz de transiciones de estados, router `/api/v1/appointments` con esquemas Pydantic V2, documentación en `backend/docs/api-agenda.md`, suite de 259 tests en verde en SQLite y PostgreSQL de Docker Compose)
 - **Scope**:
   - Modelos SQLAlchemy para `Box` y `Appointment` (Turnos).
   - Implementación de regla de negocio **RN-01** (prevención de solapamiento de turnos por profesional y box).
   - Endpoints REST para gestión de agenda, cambios de estado (`scheduled`, `confirmed`, `attended`, `cancelled`).
 - **Dependencias**: `C-02` ✓ (satisfecha el 2026-11-02: contexto multi-tenant,
-  RBAC y `/api/v1/auth/*` ya disponibles; C-04 sigue `[ ]` pendiente de
-  implementación)
+  RBAC y `/api/v1/auth/*` ya disponibles). C-04 completado, desbloquea C-06 y C-07 al cruzar GATE 2.
 - **Governance**: ALTO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Box, Appointment)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-01
   - `knowledge-base/07_flujos_principales.md` §Flujo 1
-- **Artefactos (preparados, sin implementar)**: `openspec/changes/appointment-agenda/`
-  (proposal, `specs/appointment-agenda/spec.md`, design, tasks).
+- **Artefactos**: archivado en `openspec/changes/archive/2026-11-05-appointment-agenda/`; spec canónica sincronizada en `openspec/specs/appointment-agenda/spec.md`.
 - **Revisión con skill propia**: `docs/skills-mcp/evidencias/revision-skill-c04.md`
   (11 observaciones: 1 crítica, 5 importantes, 5 menores).
-- **Hallazgos de la revisión — estado**: aplicados en los artefactos el 2026-11-04
+- **Hallazgos de la revisión — estado**: aplicados y verificados el 2026-11-05
   (origen server-side del `clinic_id` con rechazo de payload, escenarios completos de
   solapamiento, datetimes con zona y rechazo de *naive*, matriz de transiciones,
-  lectura/aislamiento y `404` único, terminología `dentist_id`). Quedan decisiones
-  abiertas del usuario en `design.md` §Open Questions: mecanismo RN-01 portable
-  SQLite/PostgreSQL, origen de `no_show`, boxes en `maintenance`, titularidad de la
-  auditoría RN-04 y filtro de estado por defecto del listado.
+  lectura individual/aislamiento de boxes `GET /api/v1/boxes/{id}` y `404` único, terminología `dentist_id`).
+  La estrategia de concurrencia para RN-01 fue resuelta y verificada mediante una garantía dual
+  (serialización en memoria vía `appointment_resource_lock` por clínica y recurso, `with_for_update` en
+  PostgreSQL/SQLite, y restricción física `EXCLUDE USING gist` en PostgreSQL con `btree_gist`).
+  Las preguntas abiertas restantes de la KB (`no_show`, boxes en `maintenance`, titularidad de auditoría RN-04 y filtro por defecto del listado)
+  quedan explícitamente fuera del alcance de C-04 y diferidas a sus changes respectivos (C-06/C-10).
 
 ### [C-05] `odontogram-clinical-records`
 - **Estado**: `[ ]` pendiente

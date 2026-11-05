@@ -423,3 +423,222 @@ async def test_patient_repo_search_filters_by_query_active_status_and_pagination
     # Pagination
     paged = await own_repo.search(include_inactive=True, limit=1, offset=1)
     assert [r.id for r in paged] == [p2.id]
+
+
+# -------------------------------------------------------------- appointments
+
+
+async def test_appointment_repo_add_and_get_isolation(seed_tenant, test_session):
+    """Task 2.2: AppointmentRepository adds and gets appointments scoped to clinic."""
+    from datetime import datetime, timezone
+    from app.models.appointment import Appointment
+    from app.models.box import Box
+    from app.models.patient import Patient
+    from app.repositories.appointments import AppointmentRepository
+
+    own = await seed_tenant()
+    foreign = await seed_tenant()
+
+    own_patient = Patient(clinic_id=own.clinic.id, first_name="Ana", last_name="Perez", dni="111")
+    own_box = Box(clinic_id=own.clinic.id, name="Box 1", status="active")
+    foreign_patient = Patient(clinic_id=foreign.clinic.id, first_name="Beto", last_name="Perez", dni="222")
+    foreign_box = Box(clinic_id=foreign.clinic.id, name="Box F", status="active")
+    test_session.add_all([own_patient, own_box, foreign_patient, foreign_box])
+    await test_session.flush()
+
+    own_repo = AppointmentRepository(test_session, _patient_scope(own))
+    foreign_repo = AppointmentRepository(test_session, _patient_scope(foreign))
+
+    t1 = datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc)
+    t2 = datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc)
+
+    appt = Appointment(
+        clinic_id=own.clinic.id,
+        patient_id=own_patient.id,
+        dentist_id=own.user.id,
+        box_id=own_box.id,
+        start_time=t1,
+        end_time=t2,
+        status="scheduled",
+    )
+    saved = await own_repo.add(appt)
+    assert saved.id is not None
+
+    assert (await own_repo.get(saved.id)) == saved
+    assert (await foreign_repo.get(saved.id)) is None
+
+
+async def test_appointment_repo_find_overlapping_scenarios(seed_tenant, test_session):
+    """Task 2.3: find_overlapping handles partial, contained, exact, box, dentist, contiguous, cancelled, and foreign clinic."""
+    from datetime import datetime, timezone
+    from app.models.appointment import Appointment
+    from app.models.box import Box
+    from app.models.patient import Patient
+    from app.repositories.appointments import AppointmentRepository
+
+    own = await seed_tenant()
+    foreign = await seed_tenant()
+
+    p = Patient(clinic_id=own.clinic.id, first_name="Ana", last_name="Perez", dni="111222")
+    b1 = Box(clinic_id=own.clinic.id, name="Box 1", status="active")
+    b2 = Box(clinic_id=own.clinic.id, name="Box 2", status="active")
+    dentist2 = _user(own.clinic.id, "dentist2@example.com", role="dentist")
+
+    test_session.add_all([p, b1, b2, dentist2])
+    await test_session.flush()
+
+    own_repo = AppointmentRepository(test_session, _patient_scope(own))
+    foreign_repo = AppointmentRepository(test_session, _patient_scope(foreign))
+
+    # Base appointment: 10:00 to 11:00 with dentist own.user and box b1
+    base = Appointment(
+        clinic_id=own.clinic.id,
+        patient_id=p.id,
+        dentist_id=own.user.id,
+        box_id=b1.id,
+        start_time=datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 11, 0, tzinfo=timezone.utc),
+        status="scheduled",
+    )
+    await own_repo.add(base)
+
+    # (a) Partial overlap by dentist (10:30 to 11:30, different box)
+    ov_dentist = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 11, 30, tzinfo=timezone.utc),
+        dentist_id=own.user.id,
+        box_id=b2.id,
+    )
+    assert len(ov_dentist) == 1
+
+    # (b) Overlap by box (10:30 to 11:30, different dentist)
+    ov_box = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 11, 30, tzinfo=timezone.utc),
+        dentist_id=dentist2.id,
+        box_id=b1.id,
+    )
+    assert len(ov_box) == 1
+
+    # (c) Contained appointment (10:15 to 10:45)
+    ov_contained = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 10, 15, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 10, 45, tzinfo=timezone.utc),
+        dentist_id=own.user.id,
+        box_id=b1.id,
+    )
+    assert len(ov_contained) == 1
+
+    # (d) Exact match (10:00 to 11:00)
+    ov_exact = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 11, 0, tzinfo=timezone.utc),
+        dentist_id=own.user.id,
+        box_id=b1.id,
+    )
+    assert len(ov_exact) == 1
+
+    # (e) Consecutive intervals: before (09:00 to 10:00) and after (11:00 to 12:00)
+    ov_before = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 9, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc),
+        dentist_id=own.user.id,
+        box_id=b1.id,
+    )
+    assert len(ov_before) == 0
+
+    ov_after = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 11, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc),
+        dentist_id=own.user.id,
+        box_id=b1.id,
+    )
+    assert len(ov_after) == 0
+
+    # (f) Cancelled appointment does NOT block
+    cancelled_appt = Appointment(
+        clinic_id=own.clinic.id,
+        patient_id=p.id,
+        dentist_id=dentist2.id,
+        box_id=b2.id,
+        start_time=datetime(2026, 11, 5, 14, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 15, 0, tzinfo=timezone.utc),
+        status="cancelled",
+    )
+    await own_repo.add(cancelled_appt)
+
+    ov_cancelled = await own_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 14, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 15, 0, tzinfo=timezone.utc),
+        dentist_id=dentist2.id,
+        box_id=b2.id,
+    )
+    assert len(ov_cancelled) == 0
+
+    # (g) Foreign clinic does not see own clinic appointments as overlap
+    ov_foreign = await foreign_repo.find_overlapping(
+        start_time=datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 11, 0, tzinfo=timezone.utc),
+        dentist_id=own.user.id,
+        box_id=b1.id,
+    )
+    assert len(ov_foreign) == 0
+
+
+async def test_appointment_repo_list_in_range_and_by_status(seed_tenant, test_session):
+    """Task 2.2/2.5: list_appointments filters by date range, status, and clinic."""
+    from datetime import datetime, timezone
+    from app.models.appointment import Appointment
+    from app.models.box import Box
+    from app.models.patient import Patient
+    from app.repositories.appointments import AppointmentRepository
+
+    own = await seed_tenant()
+    p = Patient(clinic_id=own.clinic.id, first_name="Ana", last_name="Perez", dni="999888")
+    b = Box(clinic_id=own.clinic.id, name="Box 1", status="active")
+    test_session.add_all([p, b])
+    await test_session.flush()
+
+    repo = AppointmentRepository(test_session, _patient_scope(own))
+
+    a1 = Appointment(
+        clinic_id=own.clinic.id,
+        patient_id=p.id,
+        dentist_id=own.user.id,
+        box_id=b.id,
+        start_time=datetime(2026, 11, 5, 9, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 9, 30, tzinfo=timezone.utc),
+        status="scheduled",
+    )
+    a2 = Appointment(
+        clinic_id=own.clinic.id,
+        patient_id=p.id,
+        dentist_id=own.user.id,
+        box_id=b.id,
+        start_time=datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc),
+        status="confirmed",
+    )
+    a3 = Appointment(
+        clinic_id=own.clinic.id,
+        patient_id=p.id,
+        dentist_id=own.user.id,
+        box_id=b.id,
+        start_time=datetime(2026, 11, 6, 10, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 6, 10, 30, tzinfo=timezone.utc),
+        status="scheduled",
+    )
+    await repo.add(a1)
+    await repo.add(a2)
+    await repo.add(a3)
+
+    # Date range filter (2026-11-05 only)
+    day5 = await repo.list_appointments(
+        start_time=datetime(2026, 11, 5, 0, 0, tzinfo=timezone.utc),
+        end_time=datetime(2026, 11, 5, 23, 59, tzinfo=timezone.utc),
+    )
+    assert [a.id for a in day5] == [a1.id, a2.id]
+
+    # Status filter
+    confirmed = await repo.list_appointments(status="confirmed")
+    assert [a.id for a in confirmed] == [a2.id]

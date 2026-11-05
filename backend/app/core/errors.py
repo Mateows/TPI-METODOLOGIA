@@ -99,6 +99,54 @@ class LastAdminError(DomainError):
     default_detail = "clinic must keep at least one active administrator"
 
 
+class AppointmentNotFound(DomainError):
+    """Appointment does not exist in the active clinic (indistinguishable from TenantViolation)."""
+
+    status_code = 404
+    code = "not_found"
+    default_detail = "resource not found"
+
+
+class DentistNotFound(DomainError):
+    """Dentist does not exist in the active clinic (indistinguishable from TenantViolation)."""
+
+    status_code = 404
+    code = "not_found"
+    default_detail = "resource not found"
+
+
+class BoxNotFound(DomainError):
+    """Box does not exist in the active clinic (indistinguishable from TenantViolation)."""
+
+    status_code = 404
+    code = "not_found"
+    default_detail = "resource not found"
+
+
+class AppointmentOverlap(DomainError):
+    """Appointment interval overlaps an existing appointment for the dentist or box (RN-01)."""
+
+    status_code = 409
+    code = "appointment_overlap"
+    default_detail = "appointment overlaps with an existing appointment for this dentist or box"
+
+
+class InvalidTimeRange(DomainError):
+    """Appointment start_time must be before end_time (RN-07)."""
+
+    status_code = 422
+    code = "invalid_time_range"
+    default_detail = "end_time must be after start_time"
+
+
+class InvalidAppointmentTransition(DomainError):
+    """Appointment state transition is not allowed by the transition matrix."""
+
+    status_code = 409
+    code = "invalid_appointment_transition"
+    default_detail = "invalid appointment transition"
+
+
 def _error_response(status_code: int, code: str, detail: str) -> JSONResponse:
     return JSONResponse(
         status_code=status_code, content={"detail": detail, "code": code}

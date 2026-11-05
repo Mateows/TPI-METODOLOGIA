@@ -13,6 +13,12 @@ from pydantic import BaseModel
 from sqlalchemy.exc import OperationalError
 
 from app.core.errors import (
+    AppointmentNotFound,
+    AppointmentOverlap,
+    BoxNotFound,
+    DentistNotFound,
+    InvalidAppointmentTransition,
+    InvalidTimeRange,
     AuthenticationError,
     AuthorizationError,
     DomainError,
@@ -52,6 +58,12 @@ def _app_with(exception: Exception) -> FastAPI:
         (AuthorizationError(), 403, "forbidden"),
         (TenantViolation(), 404, "not_found"),
         (DuplicateEmail(), 409, "duplicate_email"),
+        (AppointmentOverlap(), 409, "appointment_overlap"),
+        (InvalidTimeRange(), 422, "invalid_time_range"),
+        (InvalidAppointmentTransition(), 409, "invalid_appointment_transition"),
+        (AppointmentNotFound(), 404, "not_found"),
+        (DentistNotFound(), 404, "not_found"),
+        (BoxNotFound(), 404, "not_found"),
     ],
 )
 async def test_domain_error_maps_to_status_code_and_stable_code(
@@ -119,6 +131,12 @@ async def test_invalid_payload_returns_422_with_stable_code():
         (AuthenticationError(), 401, "authentication_failed"),
         (AuthorizationError(), 403, "forbidden"),
         (DuplicateEmail(), 409, "duplicate_email"),
+        (AppointmentOverlap(), 409, "appointment_overlap"),
+        (InvalidTimeRange(), 422, "invalid_time_range"),
+        (InvalidAppointmentTransition(), 409, "invalid_appointment_transition"),
+        (AppointmentNotFound(), 404, "not_found"),
+        (DentistNotFound(), 404, "not_found"),
+        (BoxNotFound(), 404, "not_found"),
     ],
 )
 async def test_create_app_handles_domain_subclasses(

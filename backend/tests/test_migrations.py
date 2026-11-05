@@ -13,12 +13,14 @@ import sys
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-HEAD_REVISION = "0004_boxes"
+HEAD_REVISION = "0005_appointments"
+BOXES_REVISION = "0004_boxes"
 PATIENTS_REVISION = "0003_patient_management"
 CORE_REVISION = "0002_core_models_tenants"
 BASE_REVISION = "0001_init"
 CORE_TABLES = {"clinics", "users", "refresh_tokens", "patients"}
 BOXES_TABLES = {"boxes"}
+APPOINTMENTS_TABLES = {"appointments"}
 
 
 def _alembic(*args: str, db_path: Path) -> subprocess.CompletedProcess[str]:
@@ -86,11 +88,33 @@ def test_upgrade_head_creates_boxes_and_downgrade_to_patients_drops_them(tmp_pat
     assert BOXES_TABLES <= _tables(db_path)
 
 
+def test_upgrade_head_creates_appointments_and_downgrade_to_boxes_drops_them(tmp_path):
+    """WHEN upgrading an empty DB THEN appointments exists; downgrading 0004 removes it."""
+    db_path = tmp_path / "appointments.db"
+    upgrade = _alembic("upgrade", "head", db_path=db_path)
+    assert upgrade.returncode == 0, upgrade.stderr
+    assert APPOINTMENTS_TABLES <= _tables(db_path)
+
+    downgrade = _alembic("downgrade", BOXES_REVISION, db_path=db_path)
+    assert downgrade.returncode == 0, downgrade.stderr
+    assert not (APPOINTMENTS_TABLES & _tables(db_path))
+    assert BOXES_TABLES <= _tables(db_path)
+
+    assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
+    assert APPOINTMENTS_TABLES <= _tables(db_path)
+
+
 def test_migration_chain_is_ordered_and_repeatable(tmp_path):
-    """upgrade head → downgrade 0003 → 0002 → 0001 → upgrade head (ida y vuelta)."""
+    """upgrade head → downgrade 0004 → 0003 → 0002 → 0001 → upgrade head (ida y vuelta)."""
     db_path = tmp_path / "migra.db"
     assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
     assert CORE_TABLES <= _tables(db_path)
+    assert BOXES_TABLES <= _tables(db_path)
+    assert APPOINTMENTS_TABLES <= _tables(db_path)
+
+    downgrade_0004 = _alembic("downgrade", BOXES_REVISION, db_path=db_path)
+    assert downgrade_0004.returncode == 0, downgrade_0004.stderr
+    assert "appointments" not in _tables(db_path)
     assert BOXES_TABLES <= _tables(db_path)
 
     downgrade_0003 = _alembic("downgrade", PATIENTS_REVISION, db_path=db_path)
@@ -106,18 +130,24 @@ def test_migration_chain_is_ordered_and_repeatable(tmp_path):
     assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
     assert CORE_TABLES <= _tables(db_path)
     assert BOXES_TABLES <= _tables(db_path)
+    assert APPOINTMENTS_TABLES <= _tables(db_path)
 
     downgrade_0001 = _alembic("downgrade", BASE_REVISION, db_path=db_path)
     assert downgrade_0001.returncode == 0, downgrade_0001.stderr
     assert not (CORE_TABLES & _tables(db_path))
     assert not (BOXES_TABLES & _tables(db_path))
+    assert not (APPOINTMENTS_TABLES & _tables(db_path))
 
     assert _alembic("upgrade", "head", db_path=db_path).returncode == 0
     assert CORE_TABLES <= _tables(db_path)
     assert BOXES_TABLES <= _tables(db_path)
+    assert APPOINTMENTS_TABLES <= _tables(db_path)
 
     second_upgrade = _alembic("upgrade", "head", db_path=db_path)
     assert second_upgrade.returncode == 0  # no-op on up-to-date DB
+
+    check = _alembic("check", db_path=db_path)
+    assert check.returncode == 0, check.stdout + check.stderr
 
     heads = _alembic("heads", db_path=db_path)
     assert heads.returncode == 0

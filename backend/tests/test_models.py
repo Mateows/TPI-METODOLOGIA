@@ -22,6 +22,9 @@ from app.core.database import Base, utcnow
 from app.models.clinic import Clinic
 from app.models.refresh_token import RefreshToken
 from app.models.user import USER_ROLES, User
+from app.models.box import Box
+from app.models.patient import Patient
+from app.models.appointment import APPOINTMENT_STATUSES, Appointment
 
 
 @pytest.fixture()
@@ -213,3 +216,145 @@ async def test_timestamps_default_to_utc_aware_now(schema_session):
     assert Base.metadata.tables["clinics"].c.created_at.type.timezone is True
     assert utcnow().tzinfo is UTC
     assert isinstance(utcnow(), datetime)
+
+
+def test_appointment_table_has_expected_columns_constraints_and_indexes():
+    """Task 1.1: appointments table exposes all required columns, constraints, and indexes."""
+    assert "appointments" in Base.metadata.tables
+    appointments = Base.metadata.tables["appointments"]
+    expected_columns = {
+        "id",
+        "clinic_id",
+        "patient_id",
+        "dentist_id",
+        "box_id",
+        "start_time",
+        "end_time",
+        "status",
+        "notes",
+        "created_at",
+        "updated_at",
+    }
+    assert expected_columns <= {c.name for c in appointments.columns}
+    assert appointments.c.clinic_id.index is True
+    assert appointments.c.start_time.type.timezone is True
+    assert appointments.c.end_time.type.timezone is True
+
+    # Composite indexes
+    index_names = {idx.name for idx in appointments.indexes}
+    assert "ix_appointments_clinic_dentist_start" in index_names
+    assert "ix_appointments_clinic_box_start" in index_names
+
+    # Closed status set
+    assert set(APPOINTMENT_STATUSES) == {
+        "scheduled",
+        "confirmed",
+        "attended",
+        "cancelled",
+        "no_show",
+    }
+
+
+async def test_appointment_persists_with_relationships_and_defaults(schema_session):
+    """Task 1.1: Appointment can be persisted with default status 'scheduled' and relationships."""
+    clinic = _clinic()
+    schema_session.add(clinic)
+    await schema_session.flush()
+
+    user = _user(clinic, email="dentist@example.com", role="dentist")
+    patient = Patient(
+        clinic=clinic,
+        first_name="Juan",
+        last_name="Perez",
+        dni="12345678",
+    )
+    box = Box(clinic_id=clinic.id, name="Box 1", status="active")
+    schema_session.add_all([user, patient, box])
+    await schema_session.flush()
+
+    now = utcnow()
+    appointment = Appointment(
+        clinic_id=clinic.id,
+        patient_id=patient.id,
+        dentist_id=user.id,
+        box_id=box.id,
+        start_time=now,
+        end_time=now + timedelta(minutes=30),
+        notes="First visit",
+    )
+    schema_session.add(appointment)
+    await schema_session.flush()
+
+    assert appointment.id is not None
+    assert appointment.status == "scheduled"
+    assert appointment.created_at is not None
+    assert appointment.updated_at is not None
+    assert appointment.notes == "First visit"
+
+
+async def test_appointment_invalid_status_rejected_by_check_constraint(schema_session):
+    """Task 1.1: Invalid status string is rejected by database check constraint."""
+    clinic = _clinic()
+    schema_session.add(clinic)
+    await schema_session.flush()
+
+    user = _user(clinic, email="dentist2@example.com", role="dentist")
+    patient = Patient(
+        clinic=clinic,
+        first_name="Maria",
+        last_name="Gomez",
+        dni="87654321",
+    )
+    box = Box(clinic_id=clinic.id, name="Box 2", status="active")
+    schema_session.add_all([user, patient, box])
+    await schema_session.flush()
+
+    now = utcnow()
+    appointment = Appointment(
+        clinic_id=clinic.id,
+        patient_id=patient.id,
+        dentist_id=user.id,
+        box_id=box.id,
+        start_time=now,
+        end_time=now + timedelta(minutes=30),
+        status="invalid_status",
+    )
+    schema_session.add(appointment)
+    with pytest.raises(IntegrityError):
+        await schema_session.flush()
+
+
+@pytest.mark.parametrize(
+    "status", ["scheduled", "confirmed", "attended", "cancelled", "no_show"]
+)
+async def test_appointment_accepts_all_defined_statuses(schema_session, status):
+    """Task 1.1: All statuses in APPOINTMENT_STATUSES can be saved."""
+    clinic = _clinic(slug=f"clinic-{status}", tax_id=f"30-9999999{status[:2]}-1")
+    schema_session.add(clinic)
+    await schema_session.flush()
+
+    user = _user(clinic, email=f"dentist-{status}@example.com", role="dentist")
+    patient = Patient(
+        clinic=clinic,
+        first_name="Test",
+        last_name=status,
+        dni=f"dni-{status}",
+    )
+    box = Box(clinic_id=clinic.id, name=f"Box {status}", status="active")
+    schema_session.add_all([user, patient, box])
+    await schema_session.flush()
+
+    now = utcnow()
+    appointment = Appointment(
+        clinic_id=clinic.id,
+        patient_id=patient.id,
+        dentist_id=user.id,
+        box_id=box.id,
+        start_time=now,
+        end_time=now + timedelta(minutes=30),
+        status=status,
+    )
+    schema_session.add(appointment)
+    await schema_session.flush()
+
+    assert appointment.status == status

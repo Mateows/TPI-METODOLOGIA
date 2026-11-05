@@ -187,3 +187,36 @@ async def test_non_admin_roles_can_list_their_own_clinic(
 
     assert response.status_code == 200
     assert [row["id"] for row in response.json()] == [str(box.id)]
+
+
+async def test_get_box_by_id_in_own_clinic(client, seed_tenant, test_session):
+    tenant = await seed_tenant(role="receptionist", email="recepcion-box-get@example.com")
+    box = await _add_box(test_session, tenant.clinic.id, name="Box Individual")
+
+    response = await client.get(f"{BOXES}/{box.id}", headers=_auth(tenant.token()))
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == str(box.id)
+    assert body["name"] == "Box Individual"
+    assert body["status"] == "active"
+
+
+async def test_get_cross_clinic_box_returns_404_identical_to_absent(
+    client, seed_tenant, test_session
+):
+    own = await seed_tenant(role="dentist", email="dentist-box-get@example.com")
+    foreign = await seed_tenant(role="admin", email="foreign-box-get@example.com")
+    foreign_box = await _add_box(test_session, foreign.clinic.id, name="Box Ajeno")
+
+    response_foreign = await client.get(
+        f"{BOXES}/{foreign_box.id}", headers=_auth(own.token())
+    )
+    response_absent = await client.get(
+        f"{BOXES}/{uuid.uuid4()}", headers=_auth(own.token())
+    )
+
+    assert response_foreign.status_code == 404
+    assert response_absent.status_code == 404
+    assert response_foreign.json() == response_absent.json()
+    assert "Box Ajeno" not in response_foreign.text

@@ -6,6 +6,8 @@ authenticated role may list and read. The tenant scope comes from the session.
 
 from __future__ import annotations
 
+import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,3 +47,14 @@ async def list_boxes(
     """List boxes belonging to the authenticated caller's clinic."""
     boxes = await boxes_service.list_boxes(db, principal)
     return [BoxResponse.model_validate(box) for box in boxes]
+
+
+@router.get("/{box_id}", response_model=BoxResponse)
+async def get_box(
+    box_id: uuid.UUID,
+    principal: Principal = Authenticated,
+    db: AsyncSession = Depends(get_db),
+) -> BoxResponse:
+    """Retrieve an individual box by ID belonging to the authenticated caller's clinic."""
+    box = await boxes_service.get_box(db, principal, box_id)
+    return BoxResponse.model_validate(box)
