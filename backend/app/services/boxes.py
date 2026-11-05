@@ -24,3 +24,8 @@ async def create_box(
         status="active",
     )
     return await BoxRepository(db, principal).add(box)
+
+
+async def list_boxes(db: AsyncSession, principal: Principal) -> list[Box]:
+    """List only boxes belonging to the caller's clinic."""
+    return list(await BoxRepository(db, principal).list())

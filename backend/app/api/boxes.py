@@ -30,3 +30,13 @@ async def create_box(
     box = await boxes_service.create_box(db, principal, payload)
     await db.commit()
     return BoxResponse.model_validate(box)
+
+
+@router.get("", response_model=list[BoxResponse])
+async def list_boxes(
+    principal: Principal = Authenticated,
+    db: AsyncSession = Depends(get_db),
+) -> list[BoxResponse]:
+    """List boxes belonging to the authenticated caller's clinic."""
+    boxes = await boxes_service.list_boxes(db, principal)
+    return [BoxResponse.model_validate(box) for box in boxes]

@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
@@ -69,6 +71,84 @@ def test_missing_secret_key_fails_fast_naming_variable(tmp_path):
     )
     assert proc.returncode != 0
     assert "SECRET_KEY" in proc.stderr
+
+
+def _boot_env() -> dict[str, str]:
+    return {
+        "PYTHONPATH": str(BACKEND_DIR),
+        "DATABASE_URL": "postgresql+asyncpg://u:p@localhost:5432/devdb",
+        "TEST_DATABASE_URL": "postgresql+asyncpg://u:p@localhost:5432/testdb",
+        "SECRET_KEY": "test-secret",
+    }
+
+
+def _boot_proc(tmp_path, **overrides: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-c", _import_settings_source()],
+        cwd=tmp_path,
+        env=_clean_env() | _boot_env() | overrides,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+
+def test_token_lifetimes_have_safe_defaults(monkeypatch, tmp_path):
+    """WHEN lifetimes are absent THEN 15-minute access / 7-day refresh."""
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://u:p@localhost:5432/devdb")
+    monkeypatch.setenv("TEST_DATABASE_URL", "postgresql+asyncpg://u:p@localhost:5432/testdb")
+    monkeypatch.setenv("SECRET_KEY", "test-secret")
+    monkeypatch.delenv("ACCESS_TOKEN_EXPIRE_MINUTES", raising=False)
+    monkeypatch.delenv("REFRESH_TOKEN_EXPIRE_DAYS", raising=False)
+    monkeypatch.chdir(tmp_path)
+
+    import importlib
+
+    import app.core.config as config
+
+    importlib.reload(config)
+    assert config.settings.ACCESS_TOKEN_EXPIRE_MINUTES == 15
+    assert config.settings.REFRESH_TOKEN_EXPIRE_DAYS == 7
+
+
+@pytest.mark.parametrize(
+    ("variable", "invalid"),
+    [
+        ("ACCESS_TOKEN_EXPIRE_MINUTES", "0"),
+        ("ACCESS_TOKEN_EXPIRE_MINUTES", "1441"),
+        ("REFRESH_TOKEN_EXPIRE_DAYS", "0"),
+        ("REFRESH_TOKEN_EXPIRE_DAYS", "91"),
+    ],
+)
+def test_out_of_range_token_lifetime_blocks_boot(tmp_path, variable, invalid):
+    """WHEN a token lifetime is outside its range THEN import fails naming it."""
+    proc = _boot_proc(tmp_path, **{variable: invalid})
+    assert proc.returncode != 0
+    assert variable in proc.stderr
+
+
+def test_bootstrap_admin_password_is_optional_and_secret(monkeypatch, tmp_path):
+    """Bootstrap runs from env/prompt (D8): absent by default, never plaintext."""
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://u:p@localhost:5432/devdb")
+    monkeypatch.setenv("TEST_DATABASE_URL", "postgresql+asyncpg://u:p@localhost:5432/testdb")
+    monkeypatch.setenv("SECRET_KEY", "test-secret")
+    monkeypatch.delenv("BOOTSTRAP_ADMIN_PASSWORD", raising=False)
+    monkeypatch.chdir(tmp_path)
+
+    import importlib
+
+    import app.core.config as config
+
+    importlib.reload(config)
+    assert config.settings.BOOTSTRAP_ADMIN_PASSWORD is None
+
+    monkeypatch.setenv("BOOTSTRAP_ADMIN_PASSWORD", "bootstrap-secret")
+    importlib.reload(config)
+    assert config.settings.BOOTSTRAP_ADMIN_PASSWORD is not None
+    assert (
+        config.settings.BOOTSTRAP_ADMIN_PASSWORD.get_secret_value()
+        == "bootstrap-secret"
+    )
 
 
 def test_optional_integration_vars_default_to_none(monkeypatch, tmp_path):

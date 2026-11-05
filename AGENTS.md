@@ -29,6 +29,32 @@ y trae la guía de ruteo (qué leer según la tarea: proponer, turnos, auth, caj
 
 > **Nota:** Los compact rules de cada skill los resuelve el orquestador desde `.atl/skill-registry.md` (generado por `skill-registry`; versionado SÍ por D-5).
 
+### Skill propia del práctico
+
+- Usar `revisor-de-agendas-de-citas` al preparar o revisar un change de agenda,
+  especialmente para validar `clinic_id`, solapamientos, horarios UTC, estados
+  y escenarios verificables.
+- La skill solo revisa y propone correcciones; no implementa código ni marca
+  changes como completados.
+
+### Servidor MCP del práctico
+
+| Aspecto | Definición |
+|---|---|
+| Servidor | `github` (remoto) — `https://api.githubcopilot.com/mcp/` |
+| Propósito | Consultar código y metadatos de GitHub para fundamentar decisiones de diseño que la KB local no cubre |
+| Capacidades | 49 tools: repositorios, búsqueda de código, issues, pull requests, GitHub Actions, usuarios |
+| Cuándo usarlo | Verificar patrones de implementación, medir el estado del arte del dominio, auditar el repositorio propio (tags, releases, historial) |
+| Cuándo NO usarlo | Datos de pacientes, secretos, operaciones de escritura sobre repositorios ajenos, o cuando la KB ya responde la pregunta |
+| Autenticación | PAT *fine-grained* en la variable de entorno `GITHUB_PERSONAL_ACCESS_TOKEN` (nunca en el repo) |
+| Límites de acceso | Solo lectura; alcance acotado a los repositorios necesarios; el repo no contiene datos reales de pacientes |
+| Configuración | `opencode.json` + [`docs/skills-mcp/mcp-github.md`](docs/skills-mcp/mcp-github.md) |
+
+- El MCP es una **integración**, no una skill: aporta datos externos, no un
+  procedimiento. No reemplaza la lectura de la KB ni la revisión con la skill propia.
+- Toda observación obtenida por el MCP debe citarse con la consulta ejecutada y el
+  resultado, igual que se hace con la KB.
+
 ---
 
 ## Roadmap de Changes
@@ -54,7 +80,7 @@ El proyecto se ejecuta en base al índice canónico definido en `CHANGES.md` (**
    - Presupuesto aceptado genera cargos en cuenta corriente del paciente (`Budget` → `AccountEntry`); sin firma digital en MVP (firma → V1.5) (RN-08, D-1).
    - Liquidación automática de comisiones/honorarios fuera del MVP → V2; en V1 solo métrica de visibilidad, sin motor de liquidación (RN-09, D-1).
 4. **Clean Architecture en FastAPI**:
-   - Separación estricta en capas: Routers (`api/`), Lógica de negocio (`services/`), y Persistencia (`models/` / SQLAlchemy).
+   - Separación estricta en capas: Routers (`api/`), Lógica de negocio (`services/`), Acceso a datos (`repositories/`), y Modelos ORM (`models/` / SQLAlchemy). Ningún servicio ni CLI construye consultas ni llama métodos de persistencia sobre la sesión directamente.
 5. **Manejo de Errores y Excepciones Tipadas**:
    - Backend: Uso de excepciones HTTP semánticas y customizadas; prohibido exponer trazas internas de base de datos.
    - Frontend: Control robusto de errores de red en peticiones asíncronas con feedback visual.

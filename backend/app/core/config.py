@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     TEST_DATABASE_URL: str
     SECRET_KEY: SecretStr
+
+    # Token lifetimes (design D2/D3). Out-of-range values fail at import time
+    # instead of silently issuing unusably short or dangerously long sessions.
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, ge=1, le=1440)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, ge=1, le=90)
+
+    # Operator bootstrap password (design D8); never required to boot, never
+    # logged. Falls back to a hidden prompt in app.cli.bootstrap_clinic.
+    BOOTSTRAP_ADMIN_PASSWORD: SecretStr | None = None
 
     WHATSAPP_API_TOKEN: str | None = None
     AFIP_CERT_PATH: str | None = None

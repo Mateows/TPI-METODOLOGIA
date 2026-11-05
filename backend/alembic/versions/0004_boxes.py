@@ -1,7 +1,7 @@
 """boxes
 
-Revision ID: 0003_boxes
-Revises: 0002_core_models_tenants
+Revision ID: 0004_boxes
+Revises: 0003_patient_management
 Create Date: 2026-11-04 00:00:00.000000
 
 """
@@ -11,8 +11,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '0003_boxes'
-down_revision: Union[str, None] = '0002_core_models_tenants'
+revision: str = '0004_boxes'
+down_revision: Union[str, None] = '0003_patient_management'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

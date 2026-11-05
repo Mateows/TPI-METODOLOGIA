@@ -50,8 +50,28 @@ async def test_get_db_yields_usable_session_then_closes(sqlite_url):
         raise AssertionError("get_db must yield exactly once")
 
 
-def test_base_is_declarative_registry(sqlite_url):
-    """Models in C-02+ will register on this Base; metadata must exist."""
-    db = _fresh_db()
-    assert hasattr(db.Base, "metadata")
-    assert db.Base.metadata.tables == {}
+def test_base_metadata_registers_core_models():
+    """Task 2.3 / C-03 1.1: importing app.models registers clinics/users/refresh_tokens/patients."""
+    import app.models as models
+    from app.models import Box, Clinic, Patient, RefreshToken, User
+
+    metadata = models.Clinic.metadata
+    assert hasattr(metadata, "tables")
+    assert {"clinics", "users", "refresh_tokens", "patients"} <= set(metadata.tables)
+    assert metadata.naming_convention["pk"] == "pk_%(table_name)s"
+    assert {
+        Clinic.__tablename__,
+        Box.__tablename__,
+        User.__tablename__,
+        RefreshToken.__tablename__,
+        Patient.__tablename__,
+    } <= set(metadata.tables)
+    assert set(models.__all__) == {
+        "BOX_STATUSES",
+        "Box",
+        "Clinic",
+        "Patient",
+        "RefreshToken",
+        "USER_ROLES",
+        "User",
+    }

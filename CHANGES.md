@@ -88,9 +88,10 @@ C-01 (Foundation Setup)
   - `knowledge-base/08_arquitectura_propuesta.md` §2, §3
 
 ### [C-02] `core-models-tenants`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado (2026-11-04; 30/30 tareas completadas en secciones 1–8, incluyendo 6.3 bootstrap idempotente en `tpi_dev`, 7.1/8.4 suite de 162 tests en verde en SQLite y PostgreSQL de Docker Compose sin escribir en `tpi_dev`, D13 capa `app/repositories/` con guarda AST en `test_architecture.py`, specs sincronizadas en `openspec/specs/{identity-access,tenant-isolation}` y archivado en `openspec/changes/archive/2026-11-04-core-models-tenants/`)
 - **Scope**:
-  - Modelos SQLAlchemy para `Clinic` y `User` con segregación multi-tenant por `clinic_id`.
+  - Modelos SQLAlchemy para `Clinic`, `User` y `RefreshToken` con segregación multi-tenant por `clinic_id`.
+  - Capa `app/repositories/` (`TenantScopedRepository`, `UserRepository`, `RefreshTokenRepository`, `ClinicRepository`) que encapsula toda consulta SQLAlchemy (D13).
   - Sistema de autenticación JWT (Access Token + Refresh Token) y encriptación Bcrypt.
   - Middleware de contexto multi-tenant y verificación de roles RBAC (admin, receptionist, dentist).
 - **Dependencias**: `C-01`
@@ -105,12 +106,12 @@ C-01 (Foundation Setup)
 ## FASE 2 — Gestión Clínica y Agenda
 
 ### [C-03] `patient-management`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-11-04; 10/10 tareas implementadas bajo Strict TDD Mode: modelo `Patient` y migración `0003_patient_management`, `PatientRepository` sobre `TenantScopedRepository`, schemas Pydantic V2 con `extra="forbid"`, servicio y router `/api/v1/patients`, documentación `backend/docs/api-patients.md` y 194 tests en verde en SQLite y PostgreSQL de Docker Compose sin escribir en `tpi_dev`)
 - **Scope**:
   - Modelo SQLAlchemy para `Patient` con campos personales y anamnesis médica en JSON.
   - Endpoints REST CRUD para pacientes (`POST /api/v1/patients`, `GET /api/v1/patients/{id}`, etc.) con filtro por `clinic_id`.
   - Tests unitarios y de aislamiento multi-tenant con pytest.
-- **Dependencias**: `C-02`
+- **Dependencias**: `C-02` ✓
 - **Governance**: MEDIO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Patient)
@@ -122,12 +123,25 @@ C-01 (Foundation Setup)
   - Modelos SQLAlchemy para `Box` y `Appointment` (Turnos).
   - Implementación de regla de negocio **RN-01** (prevención de solapamiento de turnos por profesional y box).
   - Endpoints REST para gestión de agenda, cambios de estado (`scheduled`, `confirmed`, `attended`, `cancelled`).
-- **Dependencias**: `C-02`
+- **Dependencias**: `C-02` ✓ (satisfecha el 2026-11-02: contexto multi-tenant,
+  RBAC y `/api/v1/auth/*` ya disponibles; C-04 sigue `[ ]` pendiente de
+  implementación)
 - **Governance**: ALTO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Box, Appointment)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-01
   - `knowledge-base/07_flujos_principales.md` §Flujo 1
+- **Artefactos (preparados, sin implementar)**: `openspec/changes/appointment-agenda/`
+  (proposal, `specs/appointment-agenda/spec.md`, design, tasks).
+- **Revisión con skill propia**: `docs/skills-mcp/evidencias/revision-skill-c04.md`
+  (11 observaciones: 1 crítica, 5 importantes, 5 menores).
+- **Hallazgos de la revisión — estado**: aplicados en los artefactos el 2026-11-04
+  (origen server-side del `clinic_id` con rechazo de payload, escenarios completos de
+  solapamiento, datetimes con zona y rechazo de *naive*, matriz de transiciones,
+  lectura/aislamiento y `404` único, terminología `dentist_id`). Quedan decisiones
+  abiertas del usuario en `design.md` §Open Questions: mecanismo RN-01 portable
+  SQLite/PostgreSQL, origen de `no_show`, boxes en `maintenance`, titularidad de la
+  auditoría RN-04 y filtro de estado por defecto del listado.
 
 ### [C-05] `odontogram-clinical-records`
 - **Estado**: `[ ]` pendiente
@@ -135,7 +149,7 @@ C-01 (Foundation Setup)
   - Modelos SQLAlchemy para `Odontogram` (nomenclatura ISO 3950 por cara dentaria) y `MedicalRecord` (Evoluciones).
   - Endpoints REST para registrar y consultar diagnósticos y tratamientos por pieza dental.
   - Vinculación automática entre evolución clínica y cuenta corriente del paciente.
-- **Dependencias**: `C-03`
+- **Dependencias**: `C-03` ✓ (satisfecha el 2026-11-04: modelo `Patient`, `PatientRepository` y `/api/v1/patients` disponibles)
 - **Governance**: ALTO
 - **Leer antes**:
   - `knowledge-base/04_modelo_de_datos.md` §1 (Odontogram, MedicalRecord)
