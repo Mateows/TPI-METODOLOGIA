@@ -12,9 +12,10 @@
     3. Exporta DATABASE_URL / TEST_DATABASE_URL / SECRET_KEY en ESTA ventana.
     4. Aplica migraciones a tpi_dev.
     5. Crea la clínica B (Clinica Norte) + su admin, si no existe.
-    6. Borra el usuario ficticio que el video crea en vivo (para que dé 201 y no 409).
+    6. Borra lo que el video crea en vivo (box, dentista, paciente, turnos y
+       recepcionista) para que cada corrida dé 201 y no 409.
     7. Anota los UUID que el video necesita.
-    8. Corre la suite para confirmar que está en verde.
+    8. Corre la suite (259 tests) para confirmar que está en verde.
 #>
 
 # Los ejecutables nativos (docker, alembic) escriben en stderr aunque todo salga
@@ -82,11 +83,20 @@ Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD -ErrorAction SilentlyContinue
 if ($LASTEXITCODE -ne 0) { Stop-Here "falló el bootstrap de Clinica Norte" }
 
 # ---------------------------------------------------------------- 6. Limpieza
-Step "6/8" "Borrar el usuario ficticio que el video crea en vivo"
-$sql = "DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE email = 'recepcion@demo-bootstrap.com'); " +
+Step "6/8" "Borrar lo que el video crea en vivo (turnos, box, dentista, paciente, recepcionista)"
+# Orden obligatorio: primero los turnos (FK a box/user/patient), después los
+# recursos. La clínica se identifica por su tax_id para no tocar la Clinica Norte.
+$sql = "DELETE FROM appointments WHERE clinic_id = (SELECT id FROM clinics WHERE tax_id = '30-12345678-9') " +
+       "AND (dentist_id IN (SELECT id FROM users WHERE email = 'dentista@demo-bootstrap.com') " +
+       "OR patient_id IN (SELECT id FROM patients WHERE dni = 'DEMO0001') " +
+       "OR box_id IN (SELECT id FROM boxes WHERE name = 'Box Demo 1')); " +
+       "DELETE FROM users WHERE email = 'dentista@demo-bootstrap.com'; " +
+       "DELETE FROM patients WHERE dni = 'DEMO0001'; " +
+       "DELETE FROM boxes WHERE name = 'Box Demo 1'; " +
+       "DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE email = 'recepcion@demo-bootstrap.com'); " +
        "DELETE FROM users WHERE email = 'recepcion@demo-bootstrap.com';"
 docker exec tpi-metodologia-db psql -U tpi -d tpi_dev -q -c $sql 2>&1 | Out-File $tmp -Append
-if ($LASTEXITCODE -ne 0) { Bad "no se pudo limpiar (ver $tmp)" } else { Ok "recepcion@demo-bootstrap.com eliminado" }
+if ($LASTEXITCODE -ne 0) { Bad "no se pudo limpiar (ver $tmp)" } else { Ok "turnos + box + dentista + paciente + recepcionista eliminados" }
 
 # ---------------------------------------------------------------- 7. UUID
 Step "7/8" "UUID que el video necesita"
@@ -117,7 +127,7 @@ Write-Host "    admin de Norte      : $adminB"  -ForegroundColor Yellow
 Write-Host "    guardado en         : $idsPath" -ForegroundColor DarkGray
 
 # ---------------------------------------------------------------- 8. Suite
-Step "8/8" "Suite de tests (162 tests sobre PostgreSQL)"
+Step "8/8" "Suite de tests (259 tests sobre PostgreSQL)"
 $log = & $py -m pytest -q 2>&1
 $log | Select-Object -Last 2 | ForEach-Object { "    $_" }
 if ($LASTEXITCODE -ne 0) { Stop-Here "la suite NO está en verde; no grabes todavía" }

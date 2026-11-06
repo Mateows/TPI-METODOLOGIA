@@ -1,9 +1,13 @@
 # Ficha de investigación — Skill propia y servidor MCP
 
 - **Autor:** Mateo Liendo (trabajo individual)
-- **Fecha:** 30/10/2026
+- **Fecha:** 30/10/2026 · **Actualizado:** 05/11/2026 (C-04 implementado y archivado)
 - **Repositorio:** TPI Metodología — SaaS odontológico multi-tenant (FastAPI + React + PostgreSQL)
 - **Base:** TP «Del Discovery al primer Change» (fundación con Active Stack + C-01 archivado)
+
+> **Estado actual:** la investigación se hizo con C-04 todavía como especificación. Hoy C-04
+> `appointment-agenda` está **implementado, verificado y archivado**; las 11 observaciones de la
+> skill se aplicaron antes de implementar (`a0fc1cb`) y el MCP respaldó tanto C-02 como C-04.
 
 ---
 
@@ -21,11 +25,12 @@ fundamentar decisiones que la KB local no cubre.
 
 ## 2. Change elegido
 
-**C-04 `appointment-agenda`** (`openspec/changes/appointment-agenda/`). Es el siguiente
-change habilitado del roadmap y figura pendiente en `CHANGES.md` (§C-04: modelos
-`Box`/`Appointment`, RN-01, endpoints de agenda; governance **ALTO**, depende de C-02).
-Se prepara sin depender de funcionalidades inexistentes porque el alcance es
-**especificación**, no implementación.
+**C-04 `appointment-agenda`**. Cuando se hizo la investigación era el siguiente
+change habilitado del roadmap y figuraba pendiente en `CHANGES.md` (§C-04: modelos
+`Box`/`Appointment`, RN-01, endpoints de agenda; governance **ALTO**, dependía de C-02).
+Hoy está implementado, verificado y archivado en
+`openspec/changes/archive/2026-11-05-appointment-agenda/`, con la spec canónica en
+`openspec/specs/appointment-agenda/spec.md` y 259 tests en verde.
 
 ## 3. Skill creadora y diseño de la skill propia
 
@@ -100,7 +105,7 @@ metadatos. El repo no contiene datos reales de pacientes.
 | `AGENTS.md` | Sección «Skill propia del práctico»: cuándo usarla y que no implementa |
 | `README.md` | Enlace a la documentación del MCP |
 | `docs/skills-mcp/mcp-github.md` | Requisitos, configuración, verificación y troubleshooting |
-| `CHANGES.md` | Referencia a los artefactos de C-04 (sin marcarlo implementado) |
+| `CHANGES.md` | Referencia a los artefactos de C-04, hoy con estado **implementado y archivado** |
 | `knowledge-base/` | Sin cambios: no se modifican reglas de dominio en esta instancia |
 
 ## 7. Fuentes (consultadas el 30/10/2026)

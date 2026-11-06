@@ -15,8 +15,13 @@
       0:30-3:00  editor: CHANGES.md, openspec/changes/archive/,
                  backend/app/repositories/ + tests/test_architecture.py
       3:00-6:00  editor: docs/skills-mcp/evidencias/ (skill y MCP)
-      6:00-6:40  terminal: pytest -q  ->  162 passed
-      6:40-10:00 terminal: este script
+      6:00-6:40  terminal: pytest -q  ->  259 passed
+      6:40-8:00  terminal: bloques 0-8 (C-01, C-02)
+      8:00-10:00 terminal: bloques 9-17 (C-03 paciente + C-04 agenda)
+
+  Los bloques 9-17 crean en vivo un box, un dentista, un paciente y los turnos
+  (no hay datos de agenda precargados). El preflight solo limpia lo que dejó
+  una corrida anterior.
 #>
 
 param(
@@ -55,6 +60,31 @@ function Login($email, $password) {
               $r.role, $r.token_type, $r.access_token.Length, $r.refresh_token.Length) -ForegroundColor Green
   Note "(Como se puede ver el Token no se va a exponer)"
   return $r
+}
+
+# Igual que Call, pero además captura el cuerpo para quedarse con el id que
+# devuelve la API (el video crea box/dentista/paciente/turnos en vivo).
+function CallJson($method, $path, $body, $token) {
+  $out = Join-Path $env:TEMP "tpi-demo-capture.json"
+  Remove-Item $out -ErrorAction SilentlyContinue
+  $cargs = @("-s", "-o", $out, "-w", "%{http_code}", "-X", $method)
+  if ($body) {
+    $bodyFile = Join-Path $env:TEMP "tpi-demo-body.json"
+    [System.IO.File]::WriteAllText($bodyFile, $body, [System.Text.UTF8Encoding]::new($false))
+    $cargs += @("-H", "Content-Type: application/json", "--data-binary", "@$bodyFile")
+  }
+  if ($token) { $cargs += @("-H", "Authorization: Bearer $token") }
+  $cargs += "$Base$path"
+  Write-Host "> $method $path" -ForegroundColor Yellow
+  $code = & curl.exe @cargs
+  $raw = ""
+  if (Test-Path $out) { $raw = Get-Content $out -Raw -ErrorAction SilentlyContinue }
+  $color = "Green"; if ([int]$code -ge 400) { $color = "Magenta" }
+  Write-Host ("  HTTP {0}" -f $code) -ForegroundColor $color
+  if ($raw) { Write-Host "  $raw" }
+  $parsed = $null
+  if ($raw) { try { $parsed = $raw | ConvertFrom-Json } catch { } }
+  return [pscustomobject]@{ status = [int]$code; body = $raw; json = $parsed }
 }
 
 # ---------------------------------------------------------------- 0. Salud
@@ -128,6 +158,97 @@ if (-not $SkipGrace) {
   Call "POST" "/api/v1/auth/refresh" $refreshBody $null
   Note "La familia entera quedo revocada (el 401 devuelve code = session_revoked)."
 }
+
+# ================================================================ C-03 / C-04
+# A partir de acá se crean en vivo los recursos de la agenda. Si ya corriste el
+# preflight, no existen: cada bloque espera 201/200 y captura el id.
+
+$day = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
+Note "Fecha de los turnos de la demo: $day (hora local -03:00, se persiste en UTC)"
+
+# ---------------------------------------------------------------- 9. Box
+Section "9. POST /boxes  ->  recurso de agenda de MI clinica (201)"
+$boxBody = (@{ name = "Box Demo 1" } | ConvertTo-Json -Compress)
+$box = CallJson "POST" "/api/v1/boxes" $boxBody $tokA
+$boxId = $box.json.id
+
+# ---------------------------------------------------------------- 10. Dentista
+Section "10. POST /users  ->  dentista de la clinica A (201)"
+$dentistBody = (@{ email = "dentista@demo-bootstrap.com"; full_name = "Dario Dentista"; role = "dentist"; password = "Dev-Dentista-123" } | ConvertTo-Json -Compress)
+$dentist = CallJson "POST" "/api/v1/users" $dentistBody $tokA
+$dentistId = $dentist.json.id
+
+# ---------------------------------------------------------------- 11. Paciente
+Section "11. POST /patients  ->  paciente de la clinica A (201)"
+$patientBody = (@{ first_name = "Paula"; last_name = "Paciente"; dni = "DEMO0001"; email = "paula.paciente@example.com" } | ConvertTo-Json -Compress)
+$patient = CallJson "POST" "/api/v1/patients" $patientBody $tokA
+$patientId = $patient.json.id
+
+# ---------------------------------------------------------------- 12. Turno
+Section "12. POST /appointments  ->  201, status scheduled (RN-07: fin > inicio)"
+$apptBody = (@{
+  patient_id = $patientId
+  dentist_id = $dentistId
+  box_id     = $boxId
+  start_time = "${day}T09:00:00-03:00"
+  end_time   = "${day}T09:30:00-03:00"
+  notes      = "Demo C-04"
+} | ConvertTo-Json -Compress)
+$appt = CallJson "POST" "/api/v1/appointments" $apptBody $tokA
+$apptId = $appt.json.id
+Note "La respuesta trae start/end normalizados a UTC (09:00-03:00 = 12:00Z; 09:30 = 12:30Z)."
+
+# ---------------------------------------------------------------- 13. Solapamiento
+Section "13. Mismo dentista y box, 09:15-09:45  ->  409 appointment_overlap (RN-01)"
+$overBody = (@{
+  patient_id = $patientId
+  dentist_id = $dentistId
+  box_id     = $boxId
+  start_time = "${day}T09:15:00-03:00"
+  end_time   = "${day}T09:45:00-03:00"
+} | ConvertTo-Json -Compress)
+CallJson "POST" "/api/v1/appointments" $overBody $tokA | Out-Null
+
+# ---------------------------------------------------------------- 14. Borde
+Section "14. Turno contiguo 09:30-10:00  ->  201 (el intervalo es abierto: borde no solapa)"
+$adjBody = (@{
+  patient_id = $patientId
+  dentist_id = $dentistId
+  box_id     = $boxId
+  start_time = "${day}T09:30:00-03:00"
+  end_time   = "${day}T10:00:00-03:00"
+} | ConvertTo-Json -Compress)
+$adj = CallJson "POST" "/api/v1/appointments" $adjBody $tokA
+$adjId = $adj.json.id
+
+# ---------------------------------------------------------------- 15. Transiciones
+Section "15. Maquina de estados: scheduled -> attended no es valida (409)"
+CallJson "PATCH" "/api/v1/appointments/$adjId/status" '{"status":"attended"}' $tokA | Out-Null
+Note "La matriz solo permite scheduled -> {confirmed, cancelled}."
+
+Note "15b. Transicion valida: scheduled -> confirmed (200)"
+CallJson "PATCH" "/api/v1/appointments/$apptId/status" '{"status":"confirmed"}' $tokA | Out-Null
+
+# ---------------------------------------------------------------- 16. Datetime naive
+Section "16. start_time sin zona horaria  ->  422 validation_error (se exige tz-aware)"
+$naiveBody = (@{
+  patient_id = $patientId
+  dentist_id = $dentistId
+  box_id     = $boxId
+  start_time = "${day}T11:00:00"
+  end_time   = "${day}T11:30:00"
+} | ConvertTo-Json -Compress)
+CallJson "POST" "/api/v1/appointments" $naiveBody $tokA | Out-Null
+
+# ---------------------------------------------------------------- 17. Aislamiento
+Section "17. Clinica B pide el turno de la clinica A  ->  404 not_found"
+$B = Login "admin@clinica-norte.test" "Dev-Norte-123"
+CallJson "GET" "/api/v1/appointments/$apptId" $null $B.access_token | Out-Null
+Note "Mismo 404 que un id inexistente: no se revela que el turno existe en otra clinica."
+
+# ---------------------------------------------------------------- 18. Listado
+Section "18. GET /appointments  ->  solo los turnos de mi clinica"
+CallJson "GET" "/api/v1/appointments" $null $tokA | Out-Null
 
 Write-Host "`n=== FIN DE LOS BLOQUES DE DEMO ===" -ForegroundColor Green
 Note "Recordá mostrar fuera de la terminal: CHANGES.md · archive/ · evidencias skill+MCP · app/repositories/"

@@ -1,11 +1,12 @@
 # Informe de aplicación — Skill propia y MCP integrados a la fundación
 
-- **Autor:** Mateo Liendo (trabajo individual) · **Fechas:** 30/10/2026 (skill + primera pasada del MCP) · 04/11/2026 (MCP sobre C-02)
+- **Autor:** Mateo Liendo (trabajo individual) · **Fechas:** 30/10/2026 (skill + primera pasada del MCP) · 04/11/2026 (MCP sobre C-02) · 05/11/2026 (C-04 implementado y archivado)
 - **Changes asistidos:**
-  - **C-04** `appointment-agenda` — **preparado, no implementado, verificado ni archivado**. La skill se
-    aplicó sobre sus artefactos; aporta evidencia de uso, no cuenta para el mínimo.
+  - **C-04** `appointment-agenda` — **implementado, verificado y archivado** (2026-11-05). La skill se
+    aplicó sobre sus artefactos; sus 11 observaciones se aplicaron antes de implementar (`a0fc1cb`)
+    y quedaron cubiertas por escenarios. Cuenta para el mínimo.
   - **C-02** `core-models-tenants` — **implementado, verificado y archivado**. El MCP se aplicó sobre
-    decisiones de este change; sí cuenta para el mínimo.
+    decisiones de este change; cuenta para el mínimo.
 
 
 ## 1. Resultados
@@ -24,6 +25,10 @@ Invocada sobre los artefactos de C-04 en modo solo revisión: **11 observaciones
 Cada observación quedó respaldada con `knowledge-base/04_modelo_de_datos.md` (§1),
 `05_reglas_de_negocio.md` (RN-01, RN-02, RN-04, RN-07), `07_flujos_principales.md` (Flujo 1),
 `CHANGES.md` y las reglas duras 1, 4 y 8 de `AGENTS.md`.
+
+**Cierre del ciclo:** la skill no editó nada. Las 11 observaciones se aplicaron como decisión
+explícita del autor antes de implementar (commit `a0fc1cb`), y quedaron verificadas por la suite
+de C-04. La skill aporta el diagnóstico; el change materializa la corrección.
 **Evidencia:** [`evidencias/revision-skill-c04.md`](evidencias/revision-skill-c04.md)
 
 ### 1.2 MCP elegido: GitHub MCP Server
@@ -121,8 +126,9 @@ adoptó como decisión, porque un root acotado es la restricción que el TP pide
 
 ### 3.5 Omisión que la skill sí detectó
 
-`design.md` de C-04 no incluye la sección `## UI Mockups` con la decisión de política del
-proyecto. La skill la reportó como pendiente y **no** la agregó, respetando su límite.
+`design.md` de C-04 no incluía la sección `## UI Mockups` con la decisión de política del
+proyecto. La skill la reportó como pendiente y **no** la agregó, respetando su límite. Se
+resolvió después con `Decision: no (no UI)`: C-04 es backend-only.
 
 
 ## 4. Limitaciones
@@ -131,7 +137,7 @@ proyecto. La skill la reportó como pendiente y **no** la agregó, respetando su
 2. **Endpoint remoto:** las tools pueden cambiar del lado de GitHub; no se fija versión.
 3. **Cobertura de la skill:** no incluye `knowledge-base/06_funcionalidades.md`, así que
    requisitos de la épica de agenda podrían quedar sin contrastar.
-4. **Alcance:** sin código de C-04 las 11 observaciones son de especificación, y tres
-   herramientas no miden calidad de resultados de forma sistemática.
-5. **Sin implementación:** no se marcaron tareas como completadas ni cambió el estado en
-   `CHANGES.md`.
+4. **Alcance:** la skill produce observaciones de especificación, verificables por escenarios,
+   pero no mide calidad de implementación; para eso está la suite de C-04.
+5. **Alcance entregado:** C-04 quedó implementado y archivado (2026-11-05) con 259 tests en
+   verde; C-05 a C-10 siguen pendientes y declarados como tales en `CHANGES.md`.

@@ -9,8 +9,8 @@
 | Campo | Valor |
 |---|---|
 | Repositorio | https://github.com/Mateows/TPI-METODOLOGIA |
-| Rama | `tp-skills-mcp` |
-| Commits de la entrega | Rama `tp-skills-mcp` (historial completo con `git log --oneline`). Commits que aportan contenido: `1112134` skill propia · `49e15cf` MCP + evidencias · `95784ab` artefactos de C-04 · `3faf9b9` informes · `e4182c3` sección MCP en instrucciones · `f58e232` PDFs |
+| Rama | `master` (todo consolidado; las ramas de trabajo ya se fusionaron) |
+| Commits de la entrega | Historial completo con `git log --oneline`. Commits que aportan contenido: `1112134` skill propia · `49e15cf` MCP + evidencias · `95784ab` artefactos de C-04 · `3faf9b9` informes · `e4182c3` sección MCP en instrucciones · `f58e232` PDFs · `a0fc1cb` hallazgos de la skill aplicados · `0eff18b` C-04 implementado y archivado |
 | Ficha de investigación | [`docs/skills-mcp/investigacion.md`](docs/skills-mcp/investigacion.md) — también en PDF: [`investigacion.pdf`](docs/skills-mcp/investigacion.pdf) |
 | Informe de aplicación | [`docs/skills-mcp/aplicacion.md`](docs/skills-mcp/aplicacion.md) — también en PDF: [`aplicacion.pdf`](docs/skills-mcp/aplicacion.pdf) |
 | Video de demostración | _(pendiente — completar con el enlace accesible)_ |
@@ -26,7 +26,7 @@
 | Configuración del MCP | `opencode.json` (sin secretos) |
 | Documentación del MCP | [`docs/skills-mcp/mcp-github.md`](docs/skills-mcp/mcp-github.md) |
 | Evidencias | `docs/skills-mcp/evidencias/` |
-| Artefactos del change C-04 | `openspec/changes/appointment-agenda/` |
+| Change C-04 (implementado y archivado) | `openspec/changes/archive/2026-11-05-appointment-agenda/` · spec canónica en `openspec/specs/appointment-agenda/spec.md` |
 
 ## Cómo comprobar la disponibilidad de ambas herramientas
 
@@ -49,8 +49,11 @@ Luego, en el chat: pedir `get_me` y `search_code` como se describe en
 
 ## Aclaraciones
 
-- El change **C-04 sigue pendiente**: esta entrega prepara sus artefactos y los revisa;
-  no implementa, verifica ni archiva el change.
+- El change **C-04 está implementado, verificado y archivado** (2026-11-05): 12/12 tareas,
+  259 tests en verde en SQLite y PostgreSQL. Cubre C-01 a C-04; C-05 a C-10 siguen
+  pendientes y declarados como tales en `CHANGES.md`.
+- El cambio de estado se produjo después de esta entrega: la ficha y el informe se
+  actualizaron para reflejar que los hallazgos de la skill se aplicaron antes de implementar.
 - **Sin secretos:** el token no está en el repositorio ni en esta entrega. La
   configuración usa `{env:GITHUB_PERSONAL_ACCESS_TOKEN}`.
 - **Sin datos de pacientes:** todo el material usa datos ficticios.

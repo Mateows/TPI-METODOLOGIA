@@ -9,10 +9,12 @@
 
 ## 0. Alcance declarado (decirlo así, textual)
 
-> "Fundación técnica ejecutable (C-01) e identidad, sesiones revocables y aislamiento multi-tenant
-> por clínica (C-02), backend verificado con 162 tests en SQLite y PostgreSQL. Skill propia y MCP
-> aplicados: la skill revisó la preparación de C-04 y el MCP fundamentó dos decisiones de C-02.
-> C-04 en adelante queda **pendiente e identificado**, no presentado como completo."
+> "Fundación técnica ejecutable (C-01), identidad y sesiones revocables con aislamiento
+> multi-tenant por clínica (C-02), gestión de pacientes (C-03) y agenda de turnos con
+> prevención de solapamientos (C-04). Backend verificado con **259 tests en SQLite y
+> PostgreSQL**. La skill propia revisó C-04, sus 11 observaciones se aplicaron y el MCP
+> fundamentó decisiones de C-02 y C-04. C-05 en adelante queda **pendiente e identificado**,
+> no presentado como completo."
 
 Esa última frase es obligatoria y no resta: el PDF dice *"los pendientes están identificados
 aparte"* y *"no se exige completar todo el roadmap"*.
@@ -57,13 +59,19 @@ Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD
 |---|---|
 | Admin clínica A | `admin@demo-bootstrap.com` / `Dev-Bootstrap-123` |
 | Admin clínica B | `admin@clinica-norte.test` / `Dev-Norte-123` |
-| **UUID del admin de clínica B** | obtenerlo con `GET /me` logueado como B y **anotarlo** |
-| Recepcionista de A | `recepcion@demo-bootstrap.com` / `Dev-Recepcion-123` (crear una vez por API) |
+| **UUID del admin de clínica B** | el preflight lo deja en `%TEMP%\tpi-demo-ids.json` |
+| Recepcionista de A | `recepcion@demo-bootstrap.com` / `Dev-Recepcion-123` (la crea el video) |
+| Dentista de A | `dentista@demo-bootstrap.com` / `Dev-Dentista-123` (lo crea el video) |
+| Paciente de A | DNI `DEMO0001` (lo crea el video) |
+| Box de A | `Box Demo 1` (lo crea el video) |
+
+> El preflight **borra** esos cuatro recursos antes de cada corrida, para que el video
+> siempre muestre `201` y no `409 duplicate_*`.
 
 ### 1.4 Verificar antes de grabar (2 minutos)
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q          # debe dar 162 passed
+.\.venv\Scripts\python.exe -m pytest -q          # debe dar 259 passed
 ```
 
 Y dejá abiertas tres ventanas: (a) terminal en `backend/`, (b) navegador en `http://127.0.0.1:8000/docs`,
@@ -92,8 +100,8 @@ $RB = @{ Authorization = "Bearer $($r.refresh_token)" }   # solo para el bloque 
 
 ### 0:00–0:30 — Presentación y alcance
 **Mostrás:** cámara encendida, tu nombre, y `CHANGES.md` con las fases.
-**Decís:** el párrafo de la Sección 0. Una frase: *"dos changes archivados, backend-only, C-04 en
-adelante pendiente y declarado como pendiente"*.
+**Decís:** el párrafo de la Sección 0. Una frase: *"cuatro changes archivados, backend-only, C-05
+en adelante pendiente y declarado como pendiente"*.
 
 ### 0:30–3:00 — Changes completos: propósito, resultado, verificación
 
@@ -132,7 +140,7 @@ adelante pendiente y declarado como pendiente"*.
 | Usuario inactivo → **401**; clínica inactiva → **403** | join en la dependencia de contexto |
 | Sesión revocable de verdad | rotación + `family_id` + reuso → revoca la familia |
 | Sin secretos en respuestas ni logs | `{detail, code}` + logger `app.auth` sin PII |
-| 162 tests en **SQLite y PostgreSQL**, sin tocar `tpi_dev` | conteos de filas antes/después |
+| 259 tests en **SQLite y PostgreSQL**, sin tocar `tpi_dev` | conteos de filas antes/después |
 
 **Qué rechazaste:**
 - **Rechazado: confiar en el rol y el `clinic_id` del JWT.** Son indicativos; el usuario y la
@@ -141,10 +149,55 @@ adelante pendiente y declarado como pendiente"*.
   la existencia de datos de otro tenant.
 - **Rechazado: filtrar por tenant en los servicios.** Si el filtro está disperso, ningún test
   puede garantizar que no falte en un endpoint nuevo. De ahí D13.
-- **Rechazado: marcar `xfail` las diferencias de dialecto.** No hubo ninguna: los 162 pasaron
+- **Rechazado: marcar `xfail` las diferencias de dialecto.** No hubo ninguna: los 259 pasaron
   igual en los dos motores. Si hubiera habido, se documentaba el fallo, no se debilitaba el assert.
 - **Diferido, no oculto:** el listado de profesionales para el rol `receptionist` **no** entra en
-  C-02; queda como open question de C-04 en `design.md`. Mostralo: es honestidad de alcance.
+  C-02; quedó como open question de C-04. Mostralo: es honestidad de alcance.
+
+**C-03 (`patient-management`) — 1 minuto**
+
+| Mostrás | Explicás |
+|---|---|
+| `openspec/changes/archive/2026-11-04-patient-management/` | 10/10 tareas bajo Strict TDD; migración `0003_patient_management` |
+| `openspec/specs/patient-management/spec.md` | spec canónica ya sincronizada |
+| `backend/app/repositories/patients.py` + `test_patients.py` | el `dni` duplicado se traduce en el repositorio (`IntegrityError` → `DuplicateDni`, 409) |
+
+**Qué verificaste / qué rechazaste:**
+
+| Verificado | Cómo |
+|---|---|
+| El paciente nace **siempre** en la clínica del token | `extra="forbid"` + mismo 404 para paciente ajeno e inexistente |
+| Anamnesis médica en JSON, sin PII en logs | `medical_history_summary` + logger sin datos del paciente |
+| DNI único **por clínica**, no global | índice único `(clinic_id, dni)` y test de dos clínicas con el mismo DNI |
+
+- **Rechazado: DNI único global.** Dos clínicas pueden atender a la misma persona.
+- **Rechazado: borrar pacientes en duro.** `is_active` desactiva sin romper turnos históricos.
+
+**C-04 (`appointment-agenda`) — 1 minuto**
+
+| Mostrás | Explicás |
+|---|---|
+| `openspec/changes/archive/2026-11-05-appointment-agenda/` | 12/12 tareas bajo Strict TDD; migraciones `0004_boxes` y `0005_appointments` |
+| `openspec/specs/appointment-agenda/spec.md` | requisitos de scope server-side, RN-01, UTC y transiciones |
+| `backend/app/services/appointments.py` | RN-01 con doble garantía: lock en memoria + `with_for_update` + `EXCLUDE USING gist` en PostgreSQL |
+| `docs/skills-mcp/evidencias/revision-skill-c04.md` | las 11 observaciones de la skill, **aplicadas** (`a0fc1cb`) |
+
+**Qué verificaste / qué rechazaste:**
+
+| Verificado | Cómo |
+|---|---|
+| `clinic_id` server-side también en box y turno | `extra="forbid"` + escenario "Payload cannot set clinic_id" |
+| Solapamiento por **dentista o box**, intervalo abierto | 09:00–09:30 vs 09:15–09:45 → 409; 09:30–10:00 → 201 |
+| Horas normalizadas a UTC y `naive` rechazado | `-03:00` se guarda como `Z`; sin tz → 422 `validation_error` |
+| Transiciones válidas | `scheduled → confirmed`, `confirmed → attended/cancelled`; el resto 409 |
+| Turno de otra clínica | 404 idéntico a inexistente |
+
+- **Rechazado: resolver el solapamiento solo en Python.** Dos requests concurrentes pueden pasar
+  la validación a la vez; por eso la restricción física en PostgreSQL.
+- **Rechazado: permitir `no_show` como transición de C-04.** Queda para el change de
+  recordatorios/asistencia; forzarlo acá inventaba reglas que la KB no definió.
+- **Rechazado: validar `box.status = maintenance` en C-04.** Es una open question de `design.md`;
+  se documentó en vez de inventar la regla.
 
 ### 3:00–6:00 — Skill propia y MCP
 
@@ -162,12 +215,16 @@ leídas y las **11 observaciones (1 crítica, 5 importantes, 5 menores)**.
 corrección: tomarlo solo del contexto autenticado y agregar un escenario de rechazo. Esa misma
 regla es la que C-02 ya implementó (`extra="forbid"` + `test_client_supplied_clinic_id_is_never_trusted`).
 
+**Cierre del ciclo:** la skill **no** editó nada. Sus 11 observaciones se aplicaron después, como
+decisión explícita del autor, en el commit `a0fc1cb` (artefactos) y en la implementación de C-04.
+Mostralo: la skill produce el diagnóstico; el humano decide y el change lo materializa.
+
 **Qué rechazaste con la skill:**
 - **Rechazado: aplicar la skill sobre C-01/C-02.** Su alcance declarado es agenda; sus entradas son
   `appointment-agenda/**` + KB de reglas de negocio. Sobre auth no tendría nada que validar y su
   propio criterio prohíbe presentar una revisión como exitosa sin las fuentes necesarias.
-- **Rechazado: que la skill edite los artefactos.** El procedimiento dice proponer sin editar salvo
-  pedido explícito. Las correcciones quedaron como propuestas, no aplicadas.
+- **Rechazado: dejar las observaciones como propuestas eternas.** Se aplicaron antes de implementar
+  y quedaron verificadas por escenarios; no se presentaron como "revisadas" sin efecto.
 - **Rechazado: que la skill completara la sección `## UI Mockups`** que faltaba en C-04: la reportó
   como pendiente y no la agregó, respetando su límite.
 
@@ -198,9 +255,9 @@ regla es la que C-02 ya implementó (`extra="forbid"` + `test_client_supplied_cl
 
 **6:00–6:40 · Tests**
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q     # 162 passed
+.\.venv\Scripts\python.exe -m pytest -q     # 259 passed
 ```
-Explicás: *"162 tests con rollback por test, sin escribir en la base de desarrollo; la misma suite
+Explicás: *"259 tests con rollback por test, sin escribir en la base de desarrollo; la misma suite
 corrió en SQLite y en el PostgreSQL de Compose."* Si querés mostrarlo en vivo en PostgreSQL:
 `$env:TEST_DATABASE_URL=...` y volver a correr.
 
@@ -218,6 +275,16 @@ corrió en SQLite y en el PostgreSQL de Compose."* Si querés mostrarlo en vivo 
 | 8 | admin A `PATCH /api/v1/users/<UUID del admin de B>` | **404** |
 | 9 | admin A `PATCH /api/v1/users/<UUID inventado>` | **404 idéntico** ← el paso que demuestra el aislamiento |
 | 10 | `POST /auth/refresh` y reusar el anterior | **401 reuse**; dentro de los 10 s la sesión sigue viva; pasados los 10 s se revoca la familia entera |
+| 11 | `POST /api/v1/boxes` con `{"name":"Box Demo 1"}` | **201**, sin `clinic_id` en el payload |
+| 12 | `POST /api/v1/users` creando un `dentist` | **201**, el rol se valida contra `USER_ROLES` |
+| 13 | `POST /api/v1/patients` con DNI `DEMO0001` | **201**, paciente en la clínica del token |
+| 14 | `POST /api/v1/appointments` 09:00–09:30 | **201**, status `scheduled`, horas devueltas en UTC |
+| 15 | mismo dentista/box 09:15–09:45 | **409 `appointment_overlap`** (RN-01) |
+| 16 | mismo dentista/box 09:30–10:00 (contiguo) | **201**: el intervalo es abierto, el borde no solapa |
+| 17 | `PATCH /{id}/status` con `attended` sobre un turno `scheduled` | **409 `invalid_appointment_transition`** |
+| 18 | `PATCH /{id}/status` con `confirmed` | **200**, avanza la máquina de estados |
+| 19 | `POST /appointments` con `start_time` sin zona | **422 `validation_error`** |
+| 20 | login B → `GET /api/v1/appointments/<id de A>` | **404 idéntico** al de un id inexistente |
 
 Comandos del bloque (HTTP 401/403/404 sin que PowerShell corte):
 
@@ -228,8 +295,9 @@ curl.exe -s -w "`nHTTP %{http_code}`n" -X PATCH -H "Content-Type: application/js
   "$base/api/v1/users/<UUID_AJENO>"
 ```
 
-**Cierre (15 s):** *"Queda pendiente C-03 a C-10, incluido el frontend; el único change activo es
-`appointment-agenda`, ya revisado con la skill y sin implementar. No lo presento como completo."*
+**Cierre (15 s):** *"Queda pendiente C-05 a C-10, incluido el frontend. Los cuatro changes de la
+fase 1 y 2 están implementados, verificados y archivados; no presento como completo nada que no
+esté en `openspec/changes/archive/`."*
 
 ---
 
@@ -237,10 +305,11 @@ curl.exe -s -w "`nHTTP %{http_code}`n" -X PATCH -H "Content-Type: application/js
 
 | No digas | Decí |
 |---|---|
-| "terminamos el sistema" | "completamos el alcance declarado: C-01 y C-02" |
-| "C-04 está hecho / revisado y aprobado" | "C-04 está **preparado** y revisado; no implementado ni archivado" |
-| "los tests pasan" (a secas) | "162 tests en SQLite **y** PostgreSQL, sin escribir en la base de desarrollo" |
+| "terminamos el sistema" | "completamos el alcance declarado: C-01 a C-04" |
+| "C-04 está preparado / pendiente" | "C-04 está **implementado, verificado y archivado**; C-05 en adelante sigue pendiente" |
+| "los tests pasan" (a secas) | "259 tests en SQLite **y** PostgreSQL, sin escribir en la base de desarrollo" |
 | "usamos el MCP para buscar código" | "el MCP respondió X y con eso **rechazamos** Y / **adoptamos** Z" |
+| "la skill arregló la spec" | "la skill **detectó** 11 observaciones; yo las apliqué antes de implementar" |
 | mostrar el token "para que se vea" | mostrar `access_len`, y decir que lo ocultás por la consigna |
 
 ---

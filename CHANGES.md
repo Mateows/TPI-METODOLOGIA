@@ -118,7 +118,7 @@ C-01 (Foundation Setup)
   - `knowledge-base/05_reglas_de_negocio.md` §RN-02
 
 ### [C-04] `appointment-agenda`
-- **Estado**: `[x]` implementado (2026-11-05; 12/12 tareas completadas bajo Strict TDD Mode: modelo `Appointment` y migración `0005_appointments`, `AppointmentRepository` sobre `TenantScopedRepository`, regla RN-01 de no solapamiento con doble garantía de concurrencia en `app/services/appointments.py`, matriz de transiciones de estados, router `/api/v1/appointments` con esquemas Pydantic V2, documentación en `backend/docs/api-agenda.md`, suite de 259 tests en verde en SQLite y PostgreSQL de Docker Compose)
+- **Estado**: `[x]` completado y archivado (2026-11-05; 12/12 tareas completadas bajo Strict TDD Mode: modelo `Appointment` y migración `0005_appointments`, `AppointmentRepository` sobre `TenantScopedRepository`, regla RN-01 de no solapamiento con doble garantía de concurrencia en `app/services/appointments.py`, matriz de transiciones de estados, router `/api/v1/appointments` con esquemas Pydantic V2, documentación en `backend/docs/api-agenda.md`, suite de 259 tests en verde en SQLite y PostgreSQL de Docker Compose)
 - **Scope**:
   - Modelos SQLAlchemy para `Box` y `Appointment` (Turnos).
   - Implementación de regla de negocio **RN-01** (prevención de solapamiento de turnos por profesional y box).
