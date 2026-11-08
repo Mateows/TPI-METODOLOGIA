@@ -25,6 +25,7 @@
 | Instrucciones del agente | `AGENTS.md` y `CLAUDE.md` (secciones «Skill propia del práctico» y «Servidor MCP del práctico») |
 | Configuración del MCP | `opencode.json` (sin secretos) |
 | Documentación del MCP | [`docs/skills-mcp/mcp-github.md`](docs/skills-mcp/mcp-github.md) |
+| Guion de demo del MCP | [`docs/skills-mcp/demo-mcp.md`](docs/skills-mcp/demo-mcp.md) |
 | Evidencias | `docs/skills-mcp/evidencias/` |
 | Change C-04 (implementado y archivado) | `openspec/changes/archive/2026-11-05-appointment-agenda/` · spec canónica en `openspec/specs/appointment-agenda/spec.md` |
 

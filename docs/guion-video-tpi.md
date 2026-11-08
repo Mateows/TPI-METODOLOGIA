@@ -231,6 +231,7 @@ Mostralo: la skill produce el diagnóstico; el humano decide y el change lo mate
 **MCP `github` — qué aporta y cómo se verificó**
 
 **Mostrás:** `docs/skills-mcp/evidencias/mcp-github-c02.md` y `mcp-github-c04.md`.
+Guion corto y comandos exactos para el vivo: [`docs/skills-mcp/demo-mcp.md`](skills-mcp/demo-mcp.md).
 
 | Solicitud | Resultado | Aporte |
 |---|---|---|
