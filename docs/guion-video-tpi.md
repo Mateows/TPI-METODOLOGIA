@@ -29,6 +29,7 @@ los 10 minutos se van en arrancar Docker.
 ### 1.1 Entorno base
 
 ```powershell
+cd "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 docker compose up -d db          # esperar "healthy"
 $env:DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev"
 $env:TEST_DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test"
@@ -98,14 +99,48 @@ $RB = @{ Authorization = "Bearer $($r.refresh_token)" }   # solo para el bloque 
 
 ## 2. Guion por bloques (10:00 máximo)
 
+### 2.0 Plan de grabación por partes (revisión de tiempos)
+
+**Presupuesto total: 10:00.** La presentación (P0) ya está grabada, así que quedan **9:30**
+para el resto. Si grabás por partes, cada parte se edita sola y el único número que importa
+es que la suma no pase de 10:00.
+
+| Parte | Contenido | Ventana | Objetivo | Techo | Si te pasás, recortá esto |
+|---|---|---|---|---|---|
+| **P0** | Presentación y alcance | 0:00–0:30 | 0:30 | 0:30 | (ya grabada) |
+| **P1** | C-01 fundación | 0:30–1:40 | 1:10 | 1:20 | Los 3 “rechazado”; dejá solo el de Docker en 5432 |
+| **P2** | C-02 identidad y tenant | 1:40–3:20 | 1:40 | 1:55 | La tabla de 7 verificados: narrala como 3 frases, no fila por fila |
+| **P3** | C-03 pacientes | 3:20–4:00 | 0:40 | 0:50 | El detalle de `IntegrityError`; dejá “DNI único por clínica” |
+| **P4** | C-04 agenda | 4:00–5:05 | 1:05 | 1:15 | Las 3 open questions; dejá RN-01 y UTC |
+| **P5** | Skill | 5:05–6:00 | 0:55 | 1:05 | Las 5 menores; quedate con la crítica y 2 importantes |
+| **P6** | MCP | 6:00–6:45 | 0:45 | 0:55 | Las 2 consultas menos importantes; quedate con `EXCLUDE` y `token family` |
+| **P7** | Tests | 6:45–7:15 | 0:30 | 0:35 | Nada: es el bloque más corto y el más contundente |
+| **P8** | Demo terminal | 7:15–9:45 | 2:30 | 2:50 | Pasos 1–2 de Swagger y el detalle de refresh |
+| **P9** | Cierre | 9:45–10:00 | 0:15 | 0:20 | Nada: es obligatorio |
+
+**Reglas de la review:**
+
+1. **El demo no se recorta por debajo de 2:00.** Es lo que el evaluador ve funcionando; si
+   hay que sacar tiempo, se saca de P1/P2/P3, no de P8.
+2. **Si una parte llega al techo, la siguiente baja a su objetivo mínimo** (no se acumula).
+3. **Grabá P7 y P8 en la misma toma**: el test y la demo comparten terminal y narrativa.
+4. **Usá `demo-video.ps1 -SkipGrace`**: ahorra 11 s reales y la revocación de la familia se
+   explica en una frase, no se espera en cámara.
+5. **No narres los 20 pasos del demo.** El script corre solo; vos hablás en 8 momentos
+   (ver “Narrá solo estos 8” más abajo).
+
+> **Diagnóstico de la versión anterior:** el bloque “Changes” iba de 0:30 a 3:00 (2:30),
+> pero C-01 + C-02 + C-03 + C-04 suman ~4:30. Estaba sobrepresupuestado en ~2:00. La tabla
+> de arriba corrige eso y desplaza Skill/MCP a 5:05–6:45.
+
 ### 0:00–0:30 — Presentación y alcance
 **Mostrás:** cámara encendida, tu nombre, y `CHANGES.md` con las fases.
 **Decís:** el párrafo de la Sección 0. Una frase: *"cuatro changes archivados, backend-only, C-05
 en adelante pendiente y declarado como pendiente"*.
 
-### 0:30–3:00 — Changes completos: propósito, resultado, verificación
+### 0:30–5:05 — Changes completos: propósito, resultado, verificación
 
-**C-01 (`foundation-setup`) — 1 minuto**
+**C-01 (`foundation-setup`) — 1:10 (P1)**
 
 | Mostrás | Explicás |
 |---|---|
@@ -122,7 +157,7 @@ en adelante pendiente y declarado como pendiente"*.
   testear sin Docker, pero **obliga a probar en los dos motores antes de archivar** (lo hicimos).
 - **Rechazado: levantar en 5432.** Choca con instalaciones locales de PostgreSQL.
 
-**C-02 (`core-models-tenants`) — 1.5 minutos**
+**C-02 (`core-models-tenants`) — 1:40 (P2)**
 
 | Mostrás | Explicás |
 |---|---|
@@ -154,7 +189,7 @@ en adelante pendiente y declarado como pendiente"*.
 - **Diferido, no oculto:** el listado de profesionales para el rol `receptionist` **no** entra en
   C-02; quedó como open question de C-04. Mostralo: es honestidad de alcance.
 
-**C-03 (`patient-management`) — 1 minuto**
+**C-03 (`patient-management`) — 0:40 (P3)**
 
 | Mostrás | Explicás |
 |---|---|
@@ -173,7 +208,7 @@ en adelante pendiente y declarado como pendiente"*.
 - **Rechazado: DNI único global.** Dos clínicas pueden atender a la misma persona.
 - **Rechazado: borrar pacientes en duro.** `is_active` desactiva sin romper turnos históricos.
 
-**C-04 (`appointment-agenda`) — 1 minuto**
+**C-04 (`appointment-agenda`) — 1:05 (P4)**
 
 | Mostrás | Explicás |
 |---|---|
@@ -199,9 +234,9 @@ en adelante pendiente y declarado como pendiente"*.
 - **Rechazado: validar `box.status = maintenance` en C-04.** Es una open question de `design.md`;
   se documentó en vez de inventar la regla.
 
-### 3:00–6:00 — Skill propia y MCP
+### 5:05–6:45 — Skill propia y MCP
 
-**Skill `revisor-de-agendas-de-citas` — qué necesidad resuelve**
+**Skill `revisor-de-agendas-de-citas` — 0:55 (P5) — qué necesidad resuelve**
 
 > "Antes de implementar la agenda, los artefactos tienen que ser revisables: que el `clinic_id` no
 > venga del payload, que los solapamientos cubran todos los casos, que las horas sean UTC. La skill
@@ -228,7 +263,7 @@ Mostralo: la skill produce el diagnóstico; el humano decide y el change lo mate
 - **Rechazado: que la skill completara la sección `## UI Mockups`** que faltaba en C-04: la reportó
   como pendiente y no la agregó, respetando su límite.
 
-**MCP `github` — qué aporta y cómo se verificó**
+**MCP `github` — 0:45 (P6) — qué aporta y cómo se verificó**
 
 **Mostrás:** `docs/skills-mcp/evidencias/mcp-github-c02.md` y `mcp-github-c04.md`.
 Guion corto y comandos exactos para el vivo: [`docs/skills-mcp/demo-mcp.md`](skills-mcp/demo-mcp.md).
@@ -252,9 +287,9 @@ Guion corto y comandos exactos para el vivo: [`docs/skills-mcp/demo-mcp.md`](ski
 - **Rechazado: considerar la skill y el MCP "instalados" como evidencia.** La consigna lo prohíbe
   explícitamente; por eso hay solicitud, resultado y aporte por cada uno.
 
-### 6:00–10:00 — Tests y demostración funcionando
+### 6:45–10:00 — Tests y demostración funcionando
 
-**6:00–6:40 · Tests**
+**6:45–7:15 · Tests (P7, 0:30)**
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q     # 259 passed
 ```
@@ -262,7 +297,14 @@ Explicás: *"259 tests con rollback por test, sin escribir en la base de desarro
 corrió en SQLite y en el PostgreSQL de Compose."* Si querés mostrarlo en vivo en PostgreSQL:
 `$env:TEST_DATABASE_URL=...` y volver a correr.
 
-**6:40–10:00 · Demo continua** (una sola narrativa, no casos sueltos)
+**7:15–9:45 · Demo continua (P8, 2:30)** — una sola narrativa, no casos sueltos
+
+> **Narrá solo estos 8 momentos** (el script corre solo; no comentes los 20 pasos):
+> 1) `GET /health` · 2) login + `GET /me` · 3) `POST /users` 201 · 4) email repetido 409 ·
+> 5) `GET /users` como recepcionista 403 · 6) PATCH a usuario de otra clínica 404 ·
+> 7) turno 201 → solapamiento 409 → contiguo 201 · 8) transición inválida 409 → naive 422 →
+> lectura cruzada 404.
+> Corré con `.\scripts\demo-video.ps1 -SkipGrace` para no esperar los 11 s en cámara.
 
 | Paso | Comando | Qué confirma |
 |---|---|---|
@@ -296,7 +338,7 @@ curl.exe -s -w "`nHTTP %{http_code}`n" -X PATCH -H "Content-Type: application/js
   "$base/api/v1/users/<UUID_AJENO>"
 ```
 
-**Cierre (15 s):** *"Queda pendiente C-05 a C-10, incluido el frontend. Los cuatro changes de la
+**Cierre (P9, 0:15):** *"Queda pendiente C-05 a C-10, incluido el frontend. Los cuatro changes de la
 fase 1 y 2 están implementados, verificados y archivados; no presento como completo nada que no
 esté en `openspec/changes/archive/`."*
 
