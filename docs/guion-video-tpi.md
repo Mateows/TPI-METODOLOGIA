@@ -133,6 +133,10 @@ es que la suma no pase de 10:00.
 > pero C-01 + C-02 + C-03 + C-04 suman ~4:30. Estaba sobrepresupuestado en ~2:00. La tabla
 > de arriba corrige eso y desplaza Skill/MCP a 5:05–6:45.
 
+**Hoja para tener al lado mientras grabás:** [`hoja-de-grabacion.md`](hoja-de-grabacion.md)
+(versión imprimible de una hoja doble faz: [`hoja-de-grabacion.pdf`](hoja-de-grabacion.pdf)).
+Tiene, por cada parte: qué mostrar, qué decir textual y los comandos exactos.
+
 ### 0:00–0:30 — Presentación y alcance
 **Mostrás:** cámara encendida, tu nombre, y `CHANGES.md` con las fases.
 **Decís:** el párrafo de la Sección 0. Una frase: *"cuatro changes archivados, backend-only, C-05
