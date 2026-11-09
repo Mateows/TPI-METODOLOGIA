@@ -29,14 +29,17 @@ los 10 minutos se van en arrancar Docker.
 ### 1.1 Entorno base
 
 ```powershell
-cd "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 docker compose up -d db          # esperar "healthy"
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA\backend"
 $env:DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev"
 $env:TEST_DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test"
 $env:SECRET_KEY="dev-only-change-me"      # ficticio, no es el de ningún entorno real
-cd backend
 .\.venv\Scripts\python.exe -m alembic upgrade head
 ```
+
+> `.\scripts\preflight-demo.ps1` hace todo esto y además deja las dos clínicas listas.
+> Si ya lo corriste, esta sección está cubierta.
 
 ### 1.2 Crear la segunda clínica (para demostrar el aislamiento)
 
@@ -44,6 +47,7 @@ Con una sola clínica **no podés mostrar** que un registro ajeno es indistingui
 inexistente. Creá la segunda antes de grabar:
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA\backend"
 $env:BOOTSTRAP_ADMIN_PASSWORD="Dev-Norte-123"
 .\.venv\Scripts\python.exe -m app.cli.bootstrap_clinic `
   --name "Clinica Norte" --tax-id "30-99999999-1" `
@@ -72,6 +76,9 @@ Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD
 ### 1.4 Verificar antes de grabar (2 minutos)
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
+.\scripts\chequear-video.ps1                      # Docker, base, API, archivos, token: 5 segundos
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA\backend"
 .\.venv\Scripts\python.exe -m pytest -q          # debe dar 259 passed
 ```
 

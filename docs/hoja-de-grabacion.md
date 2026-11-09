@@ -6,9 +6,13 @@
 ## Antes de la primera toma
 
 - [ ] Corré `.\scripts\preflight-demo.ps1` (deja las dos clínicas y limpia los datos del video).
+- [ ] Corré `.\scripts\chequear-video.ps1`: te dice en 5 segundos si falta algo. Si dice **LISTO PARA GRABAR**, los comandos de esta hoja funcionan.
 - [ ] Tres ventanas: terminal en `backend/`, navegador en `http://127.0.0.1:8000/docs`, editor en la raíz.
 - [ ] Abiertos: `CHANGES.md`, `openspec/changes/archive/`, `docs/skills-mcp/evidencias/`, `docs/skills-mcp/demo-mcp.md`.
 - [ ] Token del MCP cargado: `$env:GITHUB_PERSONAL_ACCESS_TOKEN.Length` tiene que dar más de 0. **Nunca muestres el token**, solo el número.
+
+> **Regla de oro de los comandos:** cada bloque empieza fijando la carpeta.
+> Así no importa dónde quedaste en el bloque anterior: se puede pegar suelto.
 
 ---
 
@@ -19,14 +23,15 @@
 **MOSTRÁS:** `docker compose ps` en healthy · `alembic current` · `/health` · la carpeta archivada.
 
 ```powershell
-cd "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 docker compose ps
-cd backend
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA\backend"
 $env:DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev"
 $env:SECRET_KEY="dev-only-change-me"
 .\.venv\Scripts\python.exe -m alembic current
-curl.exe -s http://127.0.0.1:8000/health
-cd ..
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
+curl.exe -sS http://127.0.0.1:8000/health
+Write-Output ""
 Get-ChildItem openspec\changes\archive
 ```
 
@@ -41,6 +46,7 @@ Get-ChildItem openspec\changes\archive
 **MOSTRÁS:** carpeta archivada · `openspec/specs/` · `app/repositories/` + `test_architecture.py`.
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 Get-ChildItem openspec\changes\archive\2026-11-04-core-models-tenants
 Get-ChildItem openspec\specs
 Get-Content backend\tests\test_architecture.py -TotalCount 40
@@ -54,11 +60,12 @@ Get-Content backend\tests\test_architecture.py -TotalCount 40
 
 **De qué se trata:** dar de alta pacientes sin mezclarlos entre clínicas.
 
-**MOSTRÁS:** carpeta archivada · spec · `repositories/patients.py`.
+**MOSTRÁS:** carpeta archivada · spec · `services/patients.py` (ahí vive la regla del DNI).
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 Get-ChildItem openspec\changes\archive\2026-11-04-patient-management
-Select-String -Path backend\app\repositories\patients.py -Pattern "DuplicateDni"
+Select-String -Path backend\app\services\patients.py -Pattern "DuplicateDni|dni_exists"
 ```
 
 **DECÍS:** “Pacientes. El paciente siempre se crea en la clínica del que está logueado. Si busco un paciente de otra clínica, me da el mismo 404 que si no existiera. El DNI es único por clínica, no en todo el sistema: dos clínicas pueden atender a la misma persona. Descarté el DNI único global y borrar pacientes de verdad; se desactivan con `is_active`.”
@@ -69,11 +76,12 @@ Select-String -Path backend\app\repositories\patients.py -Pattern "DuplicateDni"
 
 **De qué se trata:** turnos que no se pisan y estados que no se pueden saltar.
 
-**MOSTRÁS:** carpeta archivada · spec · `services/appointments.py`.
+**MOSTRÁS:** carpeta archivada · spec · `services/appointments.py` · `repositories/appointments.py`.
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 Get-ChildItem openspec\changes\archive\2026-11-05-appointment-agenda
-Select-String -Path backend\app\services\appointments.py -Pattern "VALID_TRANSITIONS|lock|with_for_update"
+Select-String -Path backend\app\services\appointments.py,backend\app\repositories\appointments.py -Pattern "VALID_TRANSITIONS|with_for_update|lock_resources"
 Select-String -Path openspec\specs\appointment-agenda\spec.md -Pattern "Requirement:"
 ```
 
@@ -88,6 +96,7 @@ Select-String -Path openspec\specs\appointment-agenda\spec.md -Pattern "Requirem
 **MOSTRÁS:** `SKILL.md` · la línea del registro · `evidencias/revision-skill-c04.md`.
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 Get-Content .agents\skills\revisor-de-agendas-de-citas\SKILL.md -TotalCount 25
 Select-String -Path .atl\skill-registry.md -Pattern "revisor"
 ```
@@ -103,8 +112,9 @@ Select-String -Path .atl\skill-registry.md -Pattern "revisor"
 **MOSTRÁS:** la conexión · `get_me` · una búsqueda · después la evidencia.
 
 ```powershell
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 opencode mcp list
-$env:GITHUB_PERSONAL_ACCESS_TOKEN.Length
+if ($env:GITHUB_PERSONAL_ACCESS_TOKEN) { "token cargado, largo $($env:GITHUB_PERSONAL_ACCESS_TOKEN.Length)" } else { "FALTA el token del MCP en esta ventana" }
 ```
 
 En el chat del agente:
@@ -130,7 +140,7 @@ Usá search_code con: EXCLUDE USING gist tstzrange
 **MOSTRÁS:** la suite completa.
 
 ```powershell
-cd backend
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA\backend"
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
@@ -143,9 +153,12 @@ cd backend
 **MOSTRÁS:** el script corriendo solo. **Hablá solo en estos 8 momentos.**
 
 ```powershell
-cd "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
+Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
+.\scripts\chequear-video.ps1
 .\scripts\demo-video.ps1 -SkipGrace
 ```
+
+> El primer comando es opcional y tarda 5 segundos: si algo falta, te lo dice antes de que empiece la toma. Si la API está caída, el demo también te avisa y te muestra cómo levantarla.
 
 | Momento | Decís |
 |---|---|
@@ -172,7 +185,10 @@ cd "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 
 | Falla | Qué hacés |
 |---|---|
-| Docker no arranca | Cortá la toma, corré `preflight` y volvé a grabar P7 y P8 |
+| Docker no arranca | Cortá la toma, abrí Docker Desktop, corré `preflight` y volvé a grabar P7 y P8 |
 | El demo rebota con 409 | Corré `preflight` de nuevo: limpia los datos del video |
+| El demo dice que la API no responde | Abrí otra ventana y arrancá uvicorn (el mensaje te da el comando exacto) |
 | El MCP no conecta | Mostrá la evidencia y decí que el token es tuyo y no lo mostrás |
 | `pytest` no da 259 | Pará: hay algo sin commitear o el entorno quedó mal cargado |
+
+> **Chequeo único:** `.\scripts\chequear-video.ps1` revisa Docker, base, API, archivos, token y scripts. Si todo da `[OK]`, los comandos de arriba no fallan por entorno.

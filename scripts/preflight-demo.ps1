@@ -1,4 +1,4 @@
-<#
+﻿<#
   PRE-FLIGHT del video — TPI Metodología I
   Deja listo TODO lo que el video da por sentado. Es idempotente: se puede correr
   las veces que haga falta y no duplica datos.
@@ -72,13 +72,50 @@ if ($LASTEXITCODE -ne 0) { $log | ForEach-Object { "    $_" }; Stop-Here "fallar
 $cur = (& $py -m alembic current 2>&1 | Select-Object -Last 1)
 Ok $cur
 
-# ---------------------------------------------------------------- 5. Clínica B
-Step "5/8" "Clínica B (para demostrar el aislamiento)"
+# ---------------------------------------------------------------- 5. Clínicas A y B
+Step "5/8" "Clínicas A y B (la A es la del video; la B demuestra el aislamiento)"
+
+# Clínica A: el README la crea a mano una vez. Se asegura acá para que el login
+# del video nunca falle si el entorno quedó limpio. Es idempotente por tax_id/email.
+$env:BOOTSTRAP_ADMIN_PASSWORD = "Dev-Bootstrap-123"
+$log = & $py -m app.cli.bootstrap_clinic `
+        --name "Clinica Demo Bootstrap" --tax-id "30-12345678-9" `
+        --email "admin@demo-bootstrap.com" --full-name "Ada Administradora" 2>&1
+Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+$log | ForEach-Object { Write-Host "    $_" }
+if ($LASTEXITCODE -ne 0) { Stop-Here "falló el bootstrap de Clinica Demo Bootstrap" }
+
+# La contraseña del admin de A debe ser la del guion; si la base ya existía con
+# otra, el login fallaría en cámara y no habría pista. Se verifica sin imprimirla.
+$checkPw = @'
+import asyncio
+from sqlalchemy import select
+from app.core.database import SessionLocal
+from app.core.security import verify_password
+from app.models.user import User
+
+async def main():
+    async with SessionLocal() as s:
+        u = (await s.execute(select(User).where(User.email == "admin@demo-bootstrap.com"))).scalar_one_or_none()
+        if u is None:
+            print("MISSING")
+        else:
+            print("OK" if verify_password("Dev-Bootstrap-123", u.password_hash) else "MISMATCH")
+
+asyncio.run(main())
+'@
+$pw = ($checkPw | & $py - 2>&1 | Select-Object -Last 1)
+if ("$pw".Trim() -ne "OK") {
+  Stop-Here "la contraseña del admin de la clínica A no es 'Dev-Bootstrap-123' (estado: '$pw'). Recreá tpi_dev o corregí la password antes de grabar."
+}
+Ok "admin de la clínica A verificado (Dev-Bootstrap-123)"
+
+# Clínica B: idempotente por tax_id/email.
 $env:BOOTSTRAP_ADMIN_PASSWORD = "Dev-Norte-123"
 $log = & $py -m app.cli.bootstrap_clinic `
         --name "Clinica Norte" --tax-id "30-99999999-1" `
         --email "admin@clinica-norte.test" --full-name "Bruno Norte" 2>&1
-$log | ForEach-Object { "    $_" }
+$log | ForEach-Object { Write-Host "    $_" }
 Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD -ErrorAction SilentlyContinue
 if ($LASTEXITCODE -ne 0) { Stop-Here "falló el bootstrap de Clinica Norte" }
 
@@ -111,6 +148,7 @@ $adminB  = Scalar "select id from users where email = 'admin@clinica-norte.test'
 $clinics = Scalar "select count(*) from clinics"
 $users   = Scalar "select count(*) from users"
 
+if (-not $adminA) { Stop-Here "no se pudo obtener el admin de Clinica Demo Bootstrap" }
 if (-not $adminB) { Stop-Here "no se pudo obtener el admin de Clinica Norte" }
 
 $idsPath = Join-Path $env:TEMP "tpi-demo-ids.json"

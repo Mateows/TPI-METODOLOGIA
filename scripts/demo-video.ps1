@@ -1,4 +1,4 @@
-<#
+﻿<#
   BLOQUES DEL VIDEO — TPI Metodología I
   Ejecuta, en orden, exactamente lo que se muestra en cámara. No imprime tokens:
   solo el rol y el largo del access token (la consigna pide no exponerlos).
@@ -11,15 +11,13 @@
       .\scripts\demo-video.ps1                  # secuencia completa
       .\scripts\demo-video.ps1 -SkipGrace       # sin el bloque de 11 s de la ventana de gracia
 
-  LÍNEA DE TIEMPO DEL VIDEO (este script cubre de 6:40 a 10:00):
-      0:30-3:00  editor: CHANGES.md, openspec/changes/archive/,
-                 backend/app/repositories/ + tests/test_architecture.py
-      3:00-6:00  editor: docs/skills-mcp/evidencias/ (skill y MCP)
-      6:00-6:40  terminal: pytest -q  ->  259 passed
-      6:40-8:00  terminal: bloques 0-8 (C-01, C-02)
-      8:00-10:00 terminal: bloques 9-17 (C-03 paciente + C-04 agenda)
+  LÍNEA DE TIEMPO DEL VIDEO (este script cubre P7 y P8, de 6:45 a 9:45):
+      P1-P4  editor: CHANGES.md, openspec/changes/archive/, specs y services
+      P5-P6  editor: docs/skills-mcp/ (skill y MCP)
+      P7     terminal: pytest -q  ->  259 passed
+      P8     terminal: este script (bloques 0-18)
 
-  Los bloques 9-17 crean en vivo un box, un dentista, un paciente y los turnos
+  Los bloques 9-18 crean en vivo un box, un dentista, un paciente y los turnos
   (no hay datos de agenda precargados). El preflight solo limpia lo que dejó
   una corrida anterior.
 #>
@@ -37,6 +35,25 @@ function Section($t) { Write-Host "`n===========================================
                        Write-Host "============================================================" -ForegroundColor DarkCyan }
 function Note($t)    { Write-Host "  $t" -ForegroundColor DarkGray }
 
+# ---------------------------------------------------------------- Precondición
+# Si la API no está arriba, cada bloque fallaría con un error poco claro. Se
+# corta acá con el comando exacto para arrancarla.
+$health = ""
+try { $health = (& curl.exe -sS -m 3 -o NUL -w "%{http_code}" "$Base/health" 2>$null) } catch { }
+if ("$health" -ne "200") {
+  Write-Host "`nLa API no responde en $Base/health (status '$health')." -ForegroundColor Red
+  Write-Host "Abrí OTRA ventana de PowerShell y corré:" -ForegroundColor Yellow
+  Write-Host @"
+  Set-Location "$root\backend"
+  `$env:DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev"
+  `$env:TEST_DATABASE_URL="postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test"
+  `$env:SECRET_KEY="dev-only-change-me"
+  .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+"@ -ForegroundColor Gray
+  Write-Host "Después volvé a correr este script." -ForegroundColor Yellow
+  return
+}
+
 function Call($method, $path, $body, $token) {
   $cargs = @("-s", "-w", "`nHTTP %{http_code}`n", "-X", $method)
   if ($body) {
@@ -53,9 +70,16 @@ function Call($method, $path, $body, $token) {
 }
 
 function Login($email, $password) {
-  $r = Invoke-RestMethod "$Base/api/v1/auth/login" -Method Post `
-         -ContentType "application/json" `
-         -Body (@{ email = $email; password = $password } | ConvertTo-Json)
+  try {
+    $r = Invoke-RestMethod "$Base/api/v1/auth/login" -Method Post `
+           -ContentType "application/json" `
+           -Body (@{ email = $email; password = $password } | ConvertTo-Json)
+  } catch {
+    Write-Host "`nFalló el login de $email." -ForegroundColor Red
+    Write-Host "Causa probable: las clínicas del demo no existen o la contraseña cambió." -ForegroundColor Yellow
+    Write-Host "Corré primero:  .\scripts\preflight-demo.ps1" -ForegroundColor Yellow
+    throw
+  }
   Write-Host ("  login OK -> rol={0}  token_type={1}  access_len={2}  refresh_len={3}" -f `
               $r.role, $r.token_type, $r.access_token.Length, $r.refresh_token.Length) -ForegroundColor Green
   Note "(Como se puede ver el Token no se va a exponer)"
@@ -85,6 +109,16 @@ function CallJson($method, $path, $body, $token) {
   $parsed = $null
   if ($raw) { try { $parsed = $raw | ConvertFrom-Json } catch { } }
   return [pscustomobject]@{ status = [int]$code; body = $raw; json = $parsed }
+}
+
+# Corta con un mensaje útil cuando un bloque que espera 201/200 no los devuelve
+# (por ejemplo, si se corrió el demo dos veces sin preflight y quedó un 409).
+function Assert-Created($result, $what) {
+  if ($result.status -eq 201 -or $result.status -eq 200) { return }
+  Write-Host "`nEl bloque '$what' esperaba 201/200 y devolvió $($result.status)." -ForegroundColor Red
+  Write-Host "Causa probable: los datos del video ya existen de una corrida anterior." -ForegroundColor Yellow
+  Write-Host "Solución:  .\scripts\preflight-demo.ps1  y volvé a correr el demo." -ForegroundColor Yellow
+  throw "bloque fallido: $what"
 }
 
 # ---------------------------------------------------------------- 0. Salud
@@ -170,18 +204,21 @@ Note "Fecha de los turnos de la demo: $day (hora local -03:00, se persiste en UT
 Section "9. POST /boxes  ->  recurso de agenda de MI clinica (201)"
 $boxBody = (@{ name = "Box Demo 1" } | ConvertTo-Json -Compress)
 $box = CallJson "POST" "/api/v1/boxes" $boxBody $tokA
+Assert-Created $box "9. alta de box"
 $boxId = $box.json.id
 
 # ---------------------------------------------------------------- 10. Dentista
 Section "10. POST /users  ->  dentista de la clinica A (201)"
 $dentistBody = (@{ email = "dentista@demo-bootstrap.com"; full_name = "Dario Dentista"; role = "dentist"; password = "Dev-Dentista-123" } | ConvertTo-Json -Compress)
 $dentist = CallJson "POST" "/api/v1/users" $dentistBody $tokA
+Assert-Created $dentist "10. alta de dentista"
 $dentistId = $dentist.json.id
 
 # ---------------------------------------------------------------- 11. Paciente
 Section "11. POST /patients  ->  paciente de la clinica A (201)"
 $patientBody = (@{ first_name = "Paula"; last_name = "Paciente"; dni = "DEMO0001"; email = "paula.paciente@example.com" } | ConvertTo-Json -Compress)
 $patient = CallJson "POST" "/api/v1/patients" $patientBody $tokA
+Assert-Created $patient "11. alta de paciente"
 $patientId = $patient.json.id
 
 # ---------------------------------------------------------------- 12. Turno
@@ -195,6 +232,7 @@ $apptBody = (@{
   notes      = "Demo C-04"
 } | ConvertTo-Json -Compress)
 $appt = CallJson "POST" "/api/v1/appointments" $apptBody $tokA
+Assert-Created $appt "12. alta de turno"
 $apptId = $appt.json.id
 Note "La respuesta trae start/end normalizados a UTC (09:00-03:00 = 12:00Z; 09:30 = 12:30Z)."
 
@@ -219,6 +257,7 @@ $adjBody = (@{
   end_time   = "${day}T10:00:00-03:00"
 } | ConvertTo-Json -Compress)
 $adj = CallJson "POST" "/api/v1/appointments" $adjBody $tokA
+Assert-Created $adj "14. turno contiguo"
 $adjId = $adj.json.id
 
 # ---------------------------------------------------------------- 15. Transiciones
