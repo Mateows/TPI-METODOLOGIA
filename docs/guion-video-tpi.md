@@ -308,13 +308,17 @@ Guion corto y comandos exactos para el vivo: [`docs/skills-mcp/demo-mcp.md`](ski
 
 ### 6:45–10:00 — Tests y demostración funcionando
 
-**6:45–7:15 · Tests (P7, 0:30)**
+**6:45–7:15 · Tests (P7, 0:20–0:30)**
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q     # 259 passed
+# 259 tests en total (1 segundo):
+.\.venv\Scripts\python.exe -m pytest -q --collect-only | Select-Object -Last 1
+# 11 tests que prueban las reglas duras (5 segundos), con nombre propio:
+.\.venv\Scripts\python.exe -m pytest -v --tb=short -k "test_client_supplied_clinic_id or test_cross_tenant_get or test_get_cross_clinic_box or test_overlap_prevention or test_concurrent_appointment or test_create_rejects_naive_datetime or test_forbidden_role or test_tenant_violation_body"
 ```
-Explicás: *"259 tests con rollback por test, sin escribir en la base de desarrollo; la misma suite
-corrió en SQLite y en el PostgreSQL de Compose."* Si querés mostrarlo en vivo en PostgreSQL:
-`$env:TEST_DATABASE_URL=...` y volver a correr.
+Explicás: *"La suite tiene 259 tests. Corro los 11 que prueban las reglas duras:
+aislamiento por clínica, cruce que da 404, solapamiento incluso concurrente, fechas naive y RBAC.
+Once de once, en cinco segundos. La suite completa la corrí antes: 259 passed, en SQLite y PostgreSQL."*
+**No corras los 259 en cámara:** tardan ~80 s. El número se muestra con `--collect-only`.
 
 **7:15–9:45 · Demo continua (P8, 2:30)** — una sola narrativa, no casos sueltos
 

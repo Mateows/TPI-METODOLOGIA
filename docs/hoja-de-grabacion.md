@@ -158,16 +158,19 @@ Usá search_code con: EXCLUDE USING gist tstzrange
 
 ## P7 · Tests — 0:20
 
-**De qué se trata:** mostrar que todo lo anterior está probado.
+**De qué se trata:** mostrar que las reglas duras tienen test propio, no solo un número.
 
-**MOSTRÁS:** la suite completa.
+**MOSTRÁS:** el total (`259 tests collected`) y después **11 tests con nombre y apellido** que pasan.
 
 ```powershell
 Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA\backend"
-.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m pytest -q --collect-only 2>&1 | Select-Object -Last 1
+.\.venv\Scripts\python.exe -m pytest -v --tb=short -k "test_client_supplied_clinic_id or test_cross_tenant_get or test_get_cross_clinic_box or test_overlap_prevention or test_concurrent_appointment or test_create_rejects_naive_datetime or test_forbidden_role or test_tenant_violation_body"
 ```
 
-**DECÍS:** “259 tests. Cada test deja la base como estaba, así que no ensucio la base de desarrollo. La misma suite la corrí en SQLite y en PostgreSQL.”
+**DECÍS:** “La suite tiene 259 tests. Corro los 11 que prueban las reglas duras: aislamiento por clínica, cruce entre clínicas que da 404, solapamiento incluso concurrente, fechas naive y RBAC. Once de once, en cinco segundos. La suite completa la corrí antes: 259 passed, en SQLite y PostgreSQL.”
+
+> **No corras los 259 en cámara:** tardan ~80 s. Mostrá el total con `--collect-only` y corré en vivo solo los 11.
 
 ---
 
