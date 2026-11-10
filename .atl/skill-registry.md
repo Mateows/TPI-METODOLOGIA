@@ -121,6 +121,14 @@
 - Read-only, no approval gate per URL; processes lists one-by-one, reports resolved vs failed counts at the end
 - Invoked standalone ("investigar competidor X") or as sub-skill of `discovery-research` before its Q&A
 
+### revisor-de-agendas-de-citas
+- Review-only: detects ambiguities/omissions/contradictions in appointment-agenda artifacts; NEVER implements code, NEVER edits files unless the user explicitly asks, NEVER marks a change implemented/archived
+- Reads proposal + delta specs + design + tasks + CHANGES.md + KB 04/05/07 + AGENTS.md; a missing mandatory source is reported as a limitation, never filled with invented domain rules
+- Checks every operation (boxes, patients, professionals, appointments) validates the same `clinic_id`; foreign and nonexistent records must be indistinguishable (same 404)
+- Checks intervals: `end_time > start_time`, persistence in UTC, behavior for offset datetimes; overlaps by dentist AND box, including partial, contained, exact, adjacent and cancelled
+- Checks states against the KB and that invalid transitions are rejected; requires ≥3 verifiable scenarios (happy path, business error, edge) and tasks that say how each is tested
+- Output is the fixed report: Resumen · Checklist · Observaciones classified CRÍTICA/IMPORTANTE/MENOR with file+section, problem, source rule, suggested fix · Correcciones aplicadas/pendientes; no real patient data or secrets
+
 ### tdd
 - Red → green en vertical slices: un seam, un test, una implementación mínima por ciclo; nunca horizontal slicing (todos los tests primero)
 - Testear solo en seams pre-acordados (boundary pública); confirmar seams con el usuario antes de escribir tests

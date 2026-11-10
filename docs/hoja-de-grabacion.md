@@ -113,10 +113,10 @@ Select-String -Path openspec\specs\appointment-agenda\spec.md -Pattern "Requirem
 ```powershell
 Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 Get-Content .agents\skills\revisor-de-agendas-de-citas\SKILL.md -TotalCount 25
-Select-String -Path .atl\skill-registry.md -Pattern "revisor"
+Select-String -Path .atl\skill-registry.md -Pattern "revisor-de-agendas-de-citas" -Context 0,6
 ```
 
-**DECÍS:** “La skill es un procedimiento de auditoría: revisa los documentos antes de programar, no programa. En C-04 encontró 11 observaciones; la crítica era que la spec no definía de dónde salía el `clinic_id` del turno. Las apliqué yo antes de implementar, en el commit `a0fc1cb`. La skill detecta; la decisión la tomo yo. Quedó registrada en el skill-registry, el agente la puede invocar, y los tests verifican que las correcciones quedaron.”
+**DECÍS:** “La skill es un procedimiento de auditoría: revisa los documentos antes de programar, no programa. En C-04 encontró 11 observaciones; la crítica era que la spec no definía de dónde salía el `clinic_id` del turno. Las apliqué yo antes de implementar, en el commit `a0fc1cb`. La skill detecta; la decisión la tomo yo. Quedó registrada en el skill-registry con sus reglas compactas, el agente la puede invocar, y los tests verifican que las correcciones quedaron.”
 
 ---
 
