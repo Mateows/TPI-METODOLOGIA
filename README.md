@@ -13,10 +13,14 @@ SaaS multi-tenant para clínicas odontológicas: gestión de pacientes, agenda d
 
 - `backend/` — API FastAPI en capas (`api/`, `services/`, `repositories/`, `models/`, `schemas/`, `cli/`), migraciones Alembic, documentación técnica (`backend/docs/`) y suite de tests (`tests/`).
 - `knowledge-base/` — documentación canónica del proyecto (10 archivos + índice en `README.md`).
-- `docs/discovery/` — informe de discovery (`informe-discovery.pdf`).
-- `docs/skills-mcp/` — ficha de investigación, informe de aplicación y guía del MCP `github`.
-- `openspec/` — specs principales (`backend-foundation`, `identity-access`, `tenant-isolation`) y changes del ciclo de vida OpenSpec/OPSX.
+- `openspec/` — specs canónicas (`backend-foundation`, `identity-access`, `tenant-isolation`,
+  `patient-management`, `appointment-agenda`) y changes del ciclo de vida OpenSpec/OPSX.
+- `docs/` — informes y documentos del TP: discovery, skill propia y MCP, decisiones de
+  fundación (`decisiones-fundacion-D1-D6.md`), mapeo de escenarios, justificación de skills
+  y la reflexión del trabajo.
+- `scripts/` — preparación y reproducción del demo (ver abajo).
 - `CHANGES.md` — índice canónico de los 10 changes (`C-01`..`C-10`) en 4 fases.
+- `ENTREGA.md` — índice de la entrega del TP (skill propia + servidor MCP).
 
 ## Cómo levantar
 
@@ -52,12 +56,25 @@ Copy-Item scripts/demo-env.example.ps1 scripts/demo-env.ps1
 Si la base local ya existía con otras contraseñas, aplicalas con
 `.\scripts\rotate-demo-passwords.ps1` (no imprime secretos y es idempotente).
 
+## Scripts de demo
+
+Desde la raíz del repo, en PowerShell:
+
+| Script | Para qué |
+|---|---|
+| `.\scripts\chequear-video.ps1` | Chequeo previo: Docker, base, API, archivos y variables. |
+| `.\scripts\preflight-demo.ps1` | Deja el entorno listo y reproducible: levanta PostgreSQL, migra, crea las clínicas A y B, limpia lo que el demo crea en vivo y corre la suite. |
+| `.\scripts\demo-video.ps1` | Recorre el mismo flujo que se muestra en el video: health, login, alta de usuario, duplicado, RBAC, aislamiento multi-tenant, sesiones y agenda. No imprime tokens: solo rol y largo. |
+| `.\scripts\rotate-demo-passwords.ps1` | Aplica las contraseñas de `scripts/demo-env.ps1` a la base local. |
+
 ## Documentación
 
 - [knowledge-base/](knowledge-base/) — visión, reglas de negocio, modelo de datos y arquitectura.
 - [CHANGES.md](CHANGES.md) — roadmap de changes y camino crítico.
+- [ENTREGA.md](ENTREGA.md) — índice de la entrega: skill propia, MCP, evidencias y requisitos.
 - [backend/docs/api-auth.md](backend/docs/api-auth.md) — contrato de autenticación (`/api/v1/auth/*`), administración de usuarios (`/api/v1/users/*`), matriz RBAC y bootstrap de clínica.
 - [docs/discovery/informe-discovery.pdf](docs/discovery/informe-discovery.pdf) — informe de discovery.
+- [docs/decisiones-fundacion-D1-D6.md](docs/decisiones-fundacion-D1-D6.md) — decisiones de arquitectura de la fundación.
 - [docs/skills-mcp/mcp-github.md](docs/skills-mcp/mcp-github.md) — integración del MCP `github`
   (requisitos, variables de entorno, verificación y solución de problemas).
 - [docs/skills-mcp/](docs/skills-mcp/) — ficha de investigación e informe de aplicación de
@@ -67,5 +84,20 @@ Si la base local ya existía con otras contraseñas, aplicalas con
 
 - **Ley 25.326**: no usar datos reales de pacientes; prohibido registrar credenciales, tokens o datos sensibles en logs o en el repo.
 - **Estado de changes (ver [CHANGES.md](CHANGES.md))**:
-  - **Fase 1 completada**: `C-01` (`foundation-setup`) y `C-02` (`core-models-tenants`, 30/30 tareas con capa `repositories/` D13 y 162 tests en verde en SQLite y PostgreSQL) implementados, verificados y archivados en `openspec/changes/archive/`.
-  - **Fase 2 en preparación**: `C-04` (`appointment-agenda`) con artefactos propuestos y revisados con la skill `revisor-de-agendas-de-citas` (pendiente de implementar); `C-03` (`patient-management`) y `C-05`..`C-10` pendientes.
+  - **Fase 1 completada**: `C-01` (`foundation-setup`) y `C-02` (`core-models-tenants`,
+    30/30 tareas con capa `repositories/` D13) implementados, verificados y archivados en
+    `openspec/changes/archive/`.
+  - **Fase 2 completada**: `C-03` (`patient-management`, 10/10 tareas) y `C-04`
+    (`appointment-agenda`, 12/12 tareas) implementados, verificados y archivados.
+    `C-04` se revisó antes de implementar con la skill propia `revisor-de-agendas-de-citas`.
+  - **Pendiente**: `C-05` (odontograma) y `C-06`..`C-10` (recordatorios, caja, AFIP,
+    portal público y frontend), declarados como tales en `CHANGES.md`.
+- **Suite**: 259 tests en verde, con rollback por test, sobre SQLite y PostgreSQL.
+- **Endpoints implementados**: `/health`, `/api/v1/auth/*`, `/api/v1/users`, `/api/v1/patients`,
+  `/api/v1/boxes` y `/api/v1/appointments`.
+
+## Entrega
+
+El TP se entrega como **video de demostración + repositorio**. El índice de la entrega
+(skill propia, servidor MCP, evidencias y cómo verificarlos) está en
+[ENTREGA.md](ENTREGA.md).
