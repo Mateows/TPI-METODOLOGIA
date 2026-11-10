@@ -1,7 +1,22 @@
 # Hoja de grabación — qué mostrar, qué decir y qué ejecutar
 
-> Una hoja doble faz. **La presentación (P0) ya está grabada.** Total: 10:00.
-> Si te pasás, recortá de P1–P3. El demo (P8) no baja de 2:00.
+> **Plan de rescate: 11:56 en total.** La presentación (P0) ya está grabada.
+> C-03 y Skill bajan a 1:00 cada uno; P6–P9 quedan iguales.
+> El demo arranca en **8:56**, dentro de los primeros 10 minutos: el evaluador ve
+> el sistema funcionando aunque el video siga un poco más.
+
+## Timeline de rescate
+
+| Tramo | Tiempo | Acumulado |
+|---|---|---|
+| P0–P5 (con C-03 y Skill en 1:00) | 7:51 | 7:51 |
+| P6 · MCP | 0:45 | 8:36 |
+| P7 · Tests | 0:20 | **8:56** (arranca el demo) |
+| P8 · Demo | 2:50 | 11:46 |
+| P9 · Cierre | 0:10 | **11:56** |
+
+> **La regla que no se toca:** el demo empieza antes de los 10:00. Si una toma se
+> estira, se recorta de P1–P2, nunca del demo.
 
 ## Antes de la primera toma
 
@@ -16,7 +31,7 @@
 
 ---
 
-## P1 · 0:30–1:40 · C-01: lo básico andando
+## P1 · C-01: lo básico andando
 
 **De qué se trata:** que el proyecto levante y pueda hablar con la base de datos.
 
@@ -39,7 +54,7 @@ Get-ChildItem openspec\changes\archive
 
 ---
 
-## P2 · 1:40–3:20 · C-02: que cada clínica vea solo lo suyo
+## P2 · C-02: que cada clínica vea solo lo suyo
 
 **De qué se trata:** usuarios, permisos y separación entre clínicas.
 
@@ -56,7 +71,7 @@ Get-Content backend\tests\test_architecture.py -TotalCount 40
 
 ---
 
-## P3 · 3:20–4:00 · C-03: pacientes
+## P3 · C-03: pacientes — 1:00
 
 **De qué se trata:** dar de alta pacientes sin mezclarlos entre clínicas.
 
@@ -68,11 +83,11 @@ Get-ChildItem openspec\changes\archive\2026-11-04-patient-management
 Select-String -Path backend\app\services\patients.py -Pattern "DuplicateDni|dni_exists"
 ```
 
-**DECÍS:** “Pacientes. El paciente siempre se crea en la clínica del que está logueado. Si busco un paciente de otra clínica, me da el mismo 404 que si no existiera. El DNI es único por clínica, no en todo el sistema: dos clínicas pueden atender a la misma persona. Descarté el DNI único global y borrar pacientes de verdad; se desactivan con `is_active`.”
+**DECÍS:** “Pacientes. El paciente nace siempre en la clínica del usuario logueado: la clínica no viene en el pedido. Si busco uno de otra clínica, me da el mismo 404 que si no existiera, así no revelo que existe. El DNI es único por clínica, no global: dos clínicas pueden atender a la misma persona, y eso se resuelve en el servicio y también con la restricción de la base. Y no se borra: se desactiva con `is_active`. Descarté el DNI global y el borrado físico. La spec y los tests cubren alta, búsqueda, edición y baja lógica.”
 
 ---
 
-## P4 · 4:00–5:05 · C-04: la agenda
+## P4 · C-04: la agenda
 
 **De qué se trata:** turnos que no se pisan y estados que no se pueden saltar.
 
@@ -89,7 +104,7 @@ Select-String -Path openspec\specs\appointment-agenda\spec.md -Pattern "Requirem
 
 ---
 
-## P5 · 5:05–6:00 · Skill: la que audita los changes
+## P5 · Skill: la que audita los changes — 1:00
 
 **De qué se trata:** un procedimiento que revisa los documentos antes de programar. No programa.
 
@@ -101,11 +116,11 @@ Get-Content .agents\skills\revisor-de-agendas-de-citas\SKILL.md -TotalCount 25
 Select-String -Path .atl\skill-registry.md -Pattern "revisor"
 ```
 
-**DECÍS:** “La skill es un procedimiento que revisa los documentos antes de programar; no programa nada. Revisó los documentos de C-04 y encontró 11 cosas: 1 grave, 5 importantes y 5 menores. La grave era que no estaba escrito de dónde salía la clínica del turno. Esas 11 las apliqué yo antes de implementar, en el commit `a0fc1cb`, y los tests verifican que quedaron. La skill detecta; la decisión la tomo yo.”
+**DECÍS:** “La skill es un procedimiento de auditoría: revisa los documentos antes de programar, no programa. En C-04 encontró 11 observaciones; la crítica era que la spec no definía de dónde salía el `clinic_id` del turno. Las apliqué yo antes de implementar, en el commit `a0fc1cb`. La skill detecta; la decisión la tomo yo. Quedó registrada en el skill-registry, el agente la puede invocar, y los tests verifican que las correcciones quedaron.”
 
 ---
 
-## P6 · 6:00–6:45 · MCP: la evidencia de afuera
+## P6 · MCP: la evidencia de afuera — 0:45
 
 **De qué se trata:** una conexión de solo lectura a GitHub para chequear si un patrón es estándar.
 
@@ -133,7 +148,7 @@ Usá search_code con: EXCLUDE USING gist tstzrange
 
 ---
 
-## P7 · 6:45–7:15 · Tests
+## P7 · Tests — 0:20
 
 **De qué se trata:** mostrar que todo lo anterior está probado.
 
@@ -148,7 +163,7 @@ Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA
 
 ---
 
-## P8 · 7:15–9:45 · Demo: que se vea funcionando
+## P8 · Demo: que se vea funcionando — 2:50
 
 **MOSTRÁS:** el script corriendo solo. **Hablá solo en estos 8 momentos.**
 
@@ -175,7 +190,7 @@ Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA
 
 ---
 
-## P9 · 9:45–10:00 · Cierre
+## P9 · Cierre — 0:10
 
 **DECÍS:** “Lo que falta es de C-05 para adelante, incluido el frontend. Los cuatro changes de las fases 1 y 2 están hechos, probados y archivados. No presento como terminado nada que no esté en la carpeta de archivados.”
 

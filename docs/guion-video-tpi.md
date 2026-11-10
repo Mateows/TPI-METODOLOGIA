@@ -144,6 +144,10 @@ es que la suma no pase de 10:00.
 (versión imprimible de una hoja doble faz: [`hoja-de-grabacion.pdf`](hoja-de-grabacion.pdf)).
 Tiene, por cada parte: qué mostrar, qué decir textual y los comandos exactos.
 
+> **Si ya grabaste y te pasaste del tiempo:** usá el *plan de rescate* de la hoja.
+> C-03 y Skill bajan a 1:00 cada uno, el resto queda igual y el total cierra en
+> **11:56**, con el demo arrancando en **8:56** (antes del minuto 10).
+
 ### 0:00–0:30 — Presentación y alcance
 **Mostrás:** cámara encendida, tu nombre, y `CHANGES.md` con las fases.
 **Decís:** el párrafo de la Sección 0. Una frase: *"cuatro changes archivados, backend-only, C-05
