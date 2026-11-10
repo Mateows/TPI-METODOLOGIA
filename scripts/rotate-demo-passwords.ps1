@@ -1,4 +1,4 @@
-<#
+﻿<#
   ROTA LAS CONTRASEÑAS DEMO DE LA BASE LOCAL — TPI Metodología I
 
   Las contraseñas demo originales quedaron en el historial de git. Este script
@@ -50,6 +50,10 @@ $py = ".\.venv\Scripts\python.exe"
 if (-not (Test-Path $py)) { Stop-Here "no existe $py" }
 
 $env:DATABASE_URL = "postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev"
+# app.core.config exige las tres variables al importar (fail-fast): si faltan,
+# el script muere con un ValidationError antes de tocar nada.
+if (-not $env:TEST_DATABASE_URL) { $env:TEST_DATABASE_URL = "postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test" }
+if (-not $env:SECRET_KEY)        { $env:SECRET_KEY        = "dev-only-change-me" }
 
 $rotate = @'
 import asyncio

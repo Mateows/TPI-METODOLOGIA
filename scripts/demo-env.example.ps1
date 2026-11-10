@@ -1,4 +1,4 @@
-# Plantilla de credenciales del demo (LOCAL, nunca se versiona).
+﻿# Plantilla de credenciales del demo (LOCAL, nunca se versiona).
 #
 # Uso:
 #   Copy-Item scripts/demo-env.example.ps1 scripts/demo-env.ps1
