@@ -26,7 +26,6 @@
 | Configuración del MCP | `opencode.json` (sin secretos) |
 | Documentación del MCP | [`docs/skills-mcp/mcp-github.md`](docs/skills-mcp/mcp-github.md) |
 | Guion de demo del MCP | [`docs/skills-mcp/demo-mcp.md`](docs/skills-mcp/demo-mcp.md) |
-| Hoja de grabación (qué mostrar/decir/ejecutar) | [`docs/hoja-de-grabacion.md`](docs/hoja-de-grabacion.md) · [PDF](docs/hoja-de-grabacion.pdf) |
 | Chequeo previo a grabar (Docker, base, API, archivos, token) | [`scripts/chequear-video.ps1`](scripts/chequear-video.ps1) |
 | Evidencias | `docs/skills-mcp/evidencias/` |
 | Change C-04 (implementado y archivado) | `openspec/changes/archive/2026-11-05-appointment-agenda/` · spec canónica en `openspec/specs/appointment-agenda/spec.md` |

@@ -484,7 +484,7 @@ La contraseña **nunca** se pasa como argumento (argv queda en el historial y en
 la tabla de procesos). Se toma de `BOOTSTRAP_ADMIN_PASSWORD` o del prompt oculto:
 
 ```powershell
-$env:BOOTSTRAP_ADMIN_PASSWORD="Dev-Bootstrap-123"
+$env:BOOTSTRAP_ADMIN_PASSWORD="<elegí-una-contraseña-local>"
 & .\.venv\Scripts\python.exe -m app.cli.bootstrap_clinic `
   --name "Clinica Demo Bootstrap" `
   --tax-id "30-12345678-9" `

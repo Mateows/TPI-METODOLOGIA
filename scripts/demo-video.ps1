@@ -30,6 +30,28 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 
+# ---------------------------------------------------------------- Credenciales
+# Las contraseñas del demo no viven en el repo: se leen de variables de entorno.
+# Copiá scripts/demo-env.example.ps1 a scripts/demo-env.ps1 (ignorado por git) y
+# completá los valores de tu base local.
+$envFile = Join-Path $PSScriptRoot "demo-env.ps1"
+if (Test-Path $envFile) { . $envFile }
+
+$DemoPasswordA         = $env:TPI_DEMO_PASSWORD_A
+$DemoPasswordB         = $env:TPI_DEMO_PASSWORD_B
+$DemoPasswordReception = $env:TPI_DEMO_PASSWORD_RECEPCION
+
+$missing = @()
+if (-not $DemoPasswordA)         { $missing += "TPI_DEMO_PASSWORD_A" }
+if (-not $DemoPasswordB)         { $missing += "TPI_DEMO_PASSWORD_B" }
+if (-not $DemoPasswordReception) { $missing += "TPI_DEMO_PASSWORD_RECEPCION" }
+if ($missing.Count -gt 0) {
+  Write-Host "`nFaltan credenciales del demo: $($missing -join ', ')." -ForegroundColor Red
+  Write-Host "Copiá la plantilla y completá los valores de tu base local:" -ForegroundColor Yellow
+  Write-Host "  Copy-Item scripts/demo-env.example.ps1 scripts/demo-env.ps1" -ForegroundColor Gray
+  return
+}
+
 function Section($t) { Write-Host "`n============================================================" -ForegroundColor DarkCyan
                        Write-Host "  $t" -ForegroundColor Cyan
                        Write-Host "============================================================" -ForegroundColor DarkCyan }
@@ -127,7 +149,7 @@ Call "GET" "/health" $null $null
 
 # ---------------------------------------------------------------- 1. Login
 Section "1. Login del admin de la clinica A"
-$A = Login "admin@demo-bootstrap.com" "Dev-Bootstrap-123"
+$A = Login "admin@demo-bootstrap.com" $DemoPasswordA
 $tokA = $A.access_token
 
 # ---------------------------------------------------------------- 2. /me
@@ -140,7 +162,7 @@ Call "GET" "/api/v1/users" $null $tokA
 
 # ---------------------------------------------------------------- 4. Alta
 Section "4. POST /users  ->  201, y la respuesta no trae credenciales"
-$newUser = '{"email":"recepcion@demo-bootstrap.com","full_name":"Rita Recepcion","role":"receptionist","password":"Dev-Recepcion-123"}'
+$newUser = '{"email":"recepcion@demo-bootstrap.com","full_name":"Rita Recepcion","role":"receptionist","password":"' + $DemoPasswordReception + '"}'
 Call "POST" "/api/v1/users" $newUser $tokA
 
 # ---------------------------------------------------------------- 5. Duplicado
@@ -149,7 +171,7 @@ Call "POST" "/api/v1/users" $newUser $tokA
 
 # ---------------------------------------------------------------- 6. RBAC
 Section "6. RBAC  ->  la recepcionista NO puede administrar usuarios (403)"
-$R = Login "recepcion@demo-bootstrap.com" "Dev-Recepcion-123"
+$R = Login "recepcion@demo-bootstrap.com" $DemoPasswordReception
 Call "GET" "/api/v1/users" $null $R.access_token
 
 # ---------------------------------------------------------------- 7. Aislamiento
@@ -171,7 +193,7 @@ Note "Mismo status y mismo cuerpo: no se puede distinguir 'es de otra clínica' 
 
 # ---------------------------------------------------------------- 8. Sesiones
 Section "8. Sesion revocable  ->  rotacion y deteccion de reuso"
-$S = Login "admin@demo-bootstrap.com" "Dev-Bootstrap-123"
+$S = Login "admin@demo-bootstrap.com" $DemoPasswordA
 $oldRefresh = $S.refresh_token
 $refreshBody = (@{ refresh_token = $oldRefresh } | ConvertTo-Json -Compress)
 
@@ -281,7 +303,7 @@ CallJson "POST" "/api/v1/appointments" $naiveBody $tokA | Out-Null
 
 # ---------------------------------------------------------------- 17. Aislamiento
 Section "17. Clinica B pide el turno de la clinica A  ->  404 not_found"
-$B = Login "admin@clinica-norte.test" "Dev-Norte-123"
+$B = Login "admin@clinica-norte.test" $DemoPasswordB
 CallJson "GET" "/api/v1/appointments/$apptId" $null $B.access_token | Out-Null
 Note "Mismo 404 que un id inexistente: no se revela que el turno existe en otra clinica."
 

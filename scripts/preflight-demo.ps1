@@ -25,6 +25,26 @@ $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
+# ---------------------------------------------------------------- Credenciales
+# Las contraseñas del demo no viven en el repo: se leen de variables de entorno.
+# Copiá scripts/demo-env.example.ps1 a scripts/demo-env.ps1 (ignorado por git) y
+# completá los valores de tu base local.
+$envFile = Join-Path $PSScriptRoot "demo-env.ps1"
+if (Test-Path $envFile) { . $envFile }
+
+$DemoPasswordA = $env:TPI_DEMO_PASSWORD_A
+$DemoPasswordB = $env:TPI_DEMO_PASSWORD_B
+
+$missing = @()
+if (-not $DemoPasswordA) { $missing += "TPI_DEMO_PASSWORD_A" }
+if (-not $DemoPasswordB) { $missing += "TPI_DEMO_PASSWORD_B" }
+if ($missing.Count -gt 0) {
+  Write-Host "`nFaltan credenciales del demo: $($missing -join ', ')." -ForegroundColor Red
+  Write-Host "Copiá la plantilla y completá los valores de tu base local:" -ForegroundColor Yellow
+  Write-Host "  Copy-Item scripts/demo-env.example.ps1 scripts/demo-env.ps1" -ForegroundColor Gray
+  exit 1
+}
+
 function Step($n, $t) { Write-Host "`n[$n] $t" -ForegroundColor Cyan }
 function Ok($t)       { Write-Host "    OK  $t" -ForegroundColor Green }
 function Bad($t)      { Write-Host "    !!  $t" -ForegroundColor Red }
@@ -77,7 +97,7 @@ Step "5/8" "Clínicas A y B (la A es la del video; la B demuestra el aislamiento
 
 # Clínica A: el README la crea a mano una vez. Se asegura acá para que el login
 # del video nunca falle si el entorno quedó limpio. Es idempotente por tax_id/email.
-$env:BOOTSTRAP_ADMIN_PASSWORD = "Dev-Bootstrap-123"
+$env:BOOTSTRAP_ADMIN_PASSWORD = $DemoPasswordA
 $log = & $py -m app.cli.bootstrap_clinic `
         --name "Clinica Demo Bootstrap" --tax-id "30-12345678-9" `
         --email "admin@demo-bootstrap.com" --full-name "Ada Administradora" 2>&1
@@ -89,29 +109,31 @@ if ($LASTEXITCODE -ne 0) { Stop-Here "falló el bootstrap de Clinica Demo Bootst
 # otra, el login fallaría en cámara y no habría pista. Se verifica sin imprimirla.
 $checkPw = @'
 import asyncio
+import os
 from sqlalchemy import select
 from app.core.database import SessionLocal
 from app.core.security import verify_password
 from app.models.user import User
 
 async def main():
+    expected = os.environ["TPI_DEMO_PASSWORD_A"]
     async with SessionLocal() as s:
         u = (await s.execute(select(User).where(User.email == "admin@demo-bootstrap.com"))).scalar_one_or_none()
         if u is None:
             print("MISSING")
         else:
-            print("OK" if verify_password("Dev-Bootstrap-123", u.password_hash) else "MISMATCH")
+            print("OK" if verify_password(expected, u.password_hash) else "MISMATCH")
 
 asyncio.run(main())
 '@
 $pw = ($checkPw | & $py - 2>&1 | Select-Object -Last 1)
 if ("$pw".Trim() -ne "OK") {
-  Stop-Here "la contraseña del admin de la clínica A no es 'Dev-Bootstrap-123' (estado: '$pw'). Recreá tpi_dev o corregí la password antes de grabar."
+  Stop-Here "la contraseña del admin de la clínica A no coincide con TPI_DEMO_PASSWORD_A (estado: '$pw'). Si la base es vieja, corré .\scripts\rotate-demo-passwords.ps1; si está vacía, recreá tpi_dev."
 }
-Ok "admin de la clínica A verificado (Dev-Bootstrap-123)"
+Ok "admin de la clínica A verificado contra TPI_DEMO_PASSWORD_A"
 
 # Clínica B: idempotente por tax_id/email.
-$env:BOOTSTRAP_ADMIN_PASSWORD = "Dev-Norte-123"
+$env:BOOTSTRAP_ADMIN_PASSWORD = $DemoPasswordB
 $log = & $py -m app.cli.bootstrap_clinic `
         --name "Clinica Norte" --tax-id "30-99999999-1" `
         --email "admin@clinica-norte.test" --full-name "Bruno Norte" 2>&1

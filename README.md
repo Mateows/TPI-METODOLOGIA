@@ -29,15 +29,28 @@ set DATABASE_URL=postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_dev
 set TEST_DATABASE_URL=postgresql+asyncpg://tpi:tpi@localhost:5433/tpi_test
 set SECRET_KEY=dev-only-change-me
 alembic upgrade head
-pytest  # 162 tests (también corre sobre SQLite por defecto si no se exportan las URLs)
+pytest  # 259 tests (también corre sobre SQLite por defecto si no se exportan las URLs)
 ```
 
 Para provisionar la primera clínica y su usuario `admin` de forma idempotente (ver [`backend/docs/api-auth.md`](backend/docs/api-auth.md)):
 
 ```bash
-set BOOTSTRAP_ADMIN_PASSWORD=Dev-Bootstrap-123
+set BOOTSTRAP_ADMIN_PASSWORD=<elegí-una-contraseña-local>
 python -m app.cli.bootstrap_clinic --name "Clinica Demo Bootstrap" --tax-id "30-12345678-9" --email "admin@demo-bootstrap.com" --full-name "Ada Administradora"
 ```
+
+La contraseña se pasa **solo por variable de entorno** y no se versiona. Lo mismo vale
+para los scripts de demo: leen las credenciales de variables de entorno
+(`TPI_DEMO_PASSWORD_A`, `TPI_DEMO_PASSWORD_B`, `TPI_DEMO_PASSWORD_RECEPCION`), que se
+cargan desde `scripts/demo-env.ps1` (ignorado por git). Copiá la plantilla y completá
+con los valores de tu base local:
+
+```powershell
+Copy-Item scripts/demo-env.example.ps1 scripts/demo-env.ps1
+```
+
+Si la base local ya existía con otras contraseñas, aplicalas con
+`.\scripts\rotate-demo-passwords.ps1` (no imprime secretos y es idempotente).
 
 ## Documentación
 
