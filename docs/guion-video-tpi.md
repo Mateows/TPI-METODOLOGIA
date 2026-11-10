@@ -117,13 +117,17 @@ es que la suma no pase de 10:00.
 | **P0** | Presentación y alcance | 0:00–0:30 | 0:30 | 0:30 | (ya grabada) |
 | **P1** | C-01 fundación | 0:30–1:40 | 1:10 | 1:20 | Los 3 “rechazado”; dejá solo el de Docker en 5432 |
 | **P2** | C-02 identidad y tenant | 1:40–3:20 | 1:40 | 1:55 | La tabla de 7 verificados: narrala como 3 frases, no fila por fila |
-| **P3** | C-03 pacientes | 3:20–4:00 | 0:40 | 0:50 | El detalle de `IntegrityError`; dejá “DNI único por clínica” |
+| **P3** | C-03 pacientes | 3:20–4:00 | 1:00 | 1:00 | El detalle de `IntegrityError`; dejá “DNI único por clínica” |
 | **P4** | C-04 agenda | 4:00–5:05 | 1:05 | 1:15 | Las 3 open questions; dejá RN-01 y UTC |
-| **P5** | Skill | 5:05–6:00 | 0:55 | 1:05 | Las 5 menores; quedate con la crítica y 2 importantes |
+| **P5** | Skill | 5:05–6:00 | 1:00 | 1:00 | Las 5 menores y 3 importantes; dejá la crítica y 2 importantes |
 | **P6** | MCP | 6:00–6:45 | 0:45 | 0:55 | Las 2 consultas menos importantes; quedate con `EXCLUDE` y `token family` |
 | **P7** | Tests | 6:45–7:15 | 0:30 | 0:35 | Nada: es el bloque más corto y el más contundente |
 | **P8** | Demo terminal | 7:15–9:45 | 2:30 | 2:50 | Pasos 1–2 de Swagger y el detalle de refresh |
 | **P9** | Cierre | 9:45–10:00 | 0:15 | 0:20 | Nada: es obligatorio |
+
+> **Plan de rescate vigente:** C-03 y Skill van a 1:00 cada uno; el total cierra en
+> **11:56** y el demo arranca en **8:56** (antes del minuto 10). La tabla de arriba ya
+> refleja esos dos objetivos; el paso a paso está en la hoja.
 
 **Reglas de la review:**
 

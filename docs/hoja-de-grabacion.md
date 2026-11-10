@@ -20,11 +20,11 @@
 
 ## Antes de la primera toma
 
-- [ ] Corré `.\scripts\preflight-demo.ps1` (deja las dos clínicas y limpia los datos del video).
-- [ ] Corré `.\scripts\chequear-video.ps1`: te dice en 5 segundos si falta algo. Si dice **LISTO PARA GRABAR**, los comandos de esta hoja funcionan.
-- [ ] Tres ventanas: terminal en `backend/`, navegador en `http://127.0.0.1:8000/docs`, editor en la raíz.
-- [ ] Abiertos: `CHANGES.md`, `openspec/changes/archive/`, `docs/skills-mcp/evidencias/`, `docs/skills-mcp/demo-mcp.md`.
-- [ ] Token del MCP cargado: `$env:GITHUB_PERSONAL_ACCESS_TOKEN.Length` tiene que dar más de 0. **Nunca muestres el token**, solo el número.
+- ☐ Corré `.\scripts\preflight-demo.ps1` (deja las dos clínicas y limpia los datos del video).
+- ☐ Corré `.\scripts\chequear-video.ps1`: te dice en 5 segundos si falta algo. Si dice **LISTO PARA GRABAR**, los comandos de esta hoja funcionan.
+- ☐ Tres ventanas: terminal en `backend/`, navegador en `http://127.0.0.1:8000/docs`, editor en la raíz.
+- ☐ Abiertos: `CHANGES.md`, `openspec/changes/archive/`, `docs/skills-mcp/evidencias/`, `docs/skills-mcp/demo-mcp.md`.
+- ☐ Token del MCP cargado: `$env:GITHUB_PERSONAL_ACCESS_TOKEN.Length` tiene que dar más de 0. **Nunca muestres el token**, solo el número.
 
 > **Regla de oro de los comandos:** cada bloque empieza fijando la carpeta.
 > Así no importa dónde quedaste en el bloque anterior: se puede pegar suelto.
@@ -104,6 +104,8 @@ Select-String -Path openspec\specs\appointment-agenda\spec.md -Pattern "Requirem
 
 ---
 
+<div style="break-before: page;"></div>
+
 ## P5 · Skill: la que audita los changes — 1:00
 
 **De qué se trata:** un procedimiento que revisa los documentos antes de programar. No programa.
@@ -118,6 +120,8 @@ Select-String -Path .atl\skill-registry.md -Pattern "revisor-de-agendas-de-citas
 
 **DECÍS:** “La skill es un procedimiento de auditoría: revisa los documentos antes de programar, no programa. En C-04 encontró 11 observaciones; la crítica era que la spec no definía de dónde salía el `clinic_id` del turno. Las apliqué yo antes de implementar, en el commit `a0fc1cb`. La skill detecta; la decisión la tomo yo. Quedó registrada en el skill-registry con sus reglas compactas, el agente la puede invocar, y los tests verifican que las correcciones quedaron.”
 
+> **Si te preguntan el detalle (no lo digas de entrada):** fueron **1 crítica, 5 importantes y 5 menores**. La crítica, el origen del `clinic_id`. Las importantes: solapamientos incompletos (box, contención, coincidencia exacta, cancelados), datetimes con offset o naive, falta de matriz de transiciones, spec sin listado de turnos y mecanismo de concurrencia sin definir. Las correcciones quedaron en `evidencias/revision-skill-c04.md`. La skill **no** editó archivos, **no** implementó y **no** marcó tareas.
+
 ---
 
 ## P6 · MCP: la evidencia de afuera — 0:45
@@ -129,7 +133,11 @@ Select-String -Path .atl\skill-registry.md -Pattern "revisor-de-agendas-de-citas
 ```powershell
 Set-Location "C:\Users\Mateows\Desktop\Parciales y Base de Datos\TPI METODOLOGIA"
 opencode mcp list
-if ($env:GITHUB_PERSONAL_ACCESS_TOKEN) { "token cargado, largo $($env:GITHUB_PERSONAL_ACCESS_TOKEN.Length)" } else { "FALTA el token del MCP en esta ventana" }
+if ($env:GITHUB_PERSONAL_ACCESS_TOKEN) {
+    "token cargado, largo $($env:GITHUB_PERSONAL_ACCESS_TOKEN.Length)"
+} else {
+    "FALTA el token del MCP en esta ventana"
+}
 ```
 
 En el chat del agente:
