@@ -10,10 +10,11 @@
 |---|---|
 | Repositorio | https://github.com/Mateows/TPI-METODOLOGIA |
 | Rama | `master` (todo consolidado; las ramas de trabajo ya se fusionaron) |
+| Tag de la entrega | `entrega-tpi` (congela exactamente la versión entregada) |
 | Commits de la entrega | Historial completo con `git log --oneline`. Commits que aportan contenido: `1112134` skill propia · `49e15cf` MCP + evidencias · `95784ab` artefactos de C-04 · `3faf9b9` informes · `e4182c3` sección MCP en instrucciones · `f58e232` PDFs · `a0fc1cb` hallazgos de la skill aplicados · `0eff18b` C-04 implementado y archivado |
 | Ficha de investigación | [`docs/skills-mcp/investigacion.md`](docs/skills-mcp/investigacion.md) — también en PDF: [`investigacion.pdf`](docs/skills-mcp/investigacion.pdf) |
 | Informe de aplicación | [`docs/skills-mcp/aplicacion.md`](docs/skills-mcp/aplicacion.md) — también en PDF: [`aplicacion.pdf`](docs/skills-mcp/aplicacion.pdf) |
-| Video de demostración | _(pendiente — completar con el enlace accesible)_ |
+| Video de demostración | https://www.youtube.com/watch?v=yvxYBFweSwQ — acceso con el enlace |
 
 ## Contenido
 

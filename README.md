@@ -98,6 +98,13 @@ Desde la raíz del repo, en PowerShell:
 
 ## Entrega
 
-El TP se entrega como **video de demostración + repositorio**. El índice de la entrega
+El TP se entrega como **video de demostración + repositorio**:
+
+| Entrega | Link |
+|---|---|
+| Video de demostración | https://www.youtube.com/watch?v=yvxYBFweSwQ |
+| Repositorio | https://github.com/Mateows/TPI-METODOLOGIA |
+
+La versión entregada queda congelada en el tag `entrega-tpi`. El índice de la entrega
 (skill propia, servidor MCP, evidencias y cómo verificarlos) está en
 [ENTREGA.md](ENTREGA.md).
